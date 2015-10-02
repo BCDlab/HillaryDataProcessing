@@ -25,39 +25,34 @@ function [] = ELIFFT()
         CombinedFiles(subjectIndex,:) = ym;
     end
 
-    % AveResponse = mean(CombinedFiles,1);
+    AveResponse = mean(CombinedFiles,1);
 
-    save function.mat;
+    BaseSignal = AveResponse(57);
+    bnoise = [AveResponse(37:46),AveResponse(47:57)];
+    BaseNoise = mean(bnoise);
+    BaseRatio = BaseSignal/BaseNoise;
+    BaseSNR = mean(BaseRatio);
 
-    %     BaseSignal = AveResponse(100); % Bin 100 is 6.04
-    %     bnoise = [AveResponse(90:99),AveResponse(101:110)];
+    OddSignal = AveResponse(21); % Bin 21 is 1.22
+    onoise = [AveResponse(11:20),AveResponse(22:31)];
+    OddNoise = mean(onoise);
+    OddRatio = OddSignal/OddNoise;
+    OddSNR = mean(OddRatio);
 
-    %     BaseSignal = AveResponse(57);
-    %     bnoise = [AveResponse(37:46),AveResponse(47:57)];
-    %     BaseNoise = mean(bnoise);
-    %     BaseRatio = BaseSignal/BaseNoise;
-    %     BaseSNR = mean(BaseRatio);
-    % 
-    %     OddSignal = AveResponse(21); % Bin 21 is 1.22
-    %     onoise = [AveResponse(11:20),AveResponse(22:31)];
-    %     OddNoise = mean(onoise);
-    %     OddRatio = OddSignal/OddNoise;
-    %     OddSNR = mean(OddRatio);
-    %     
-    %     save finishedData.mat;
-    % 
-    %     disp(BaseSNR);
-    %     disp(OddSNR);
-    % 
-    %     plot(f,AveResponse);
-    %     % axis([1 7 0 35]); % Change the last number to adjust y-scale
-    %     xlim([1 7]);
-    %     ylim auto
-    %     xlabel('Frequency (Hz)')
-    %     ylabel('Y(f)')
+    disp(BaseSNR);
+    disp(OddSNR);
+
+    plot(f,AveResponse);
+    % axis([1 7 0 35]); % Change the last number to adjust y-scale
+    xlim([1 7]);
+    ylim auto
+    xlabel('Frequency (Hz)')
+    ylabel('Y(f)')
 end
 
 %TODO: Fix this
+% Function used to remove subjects that the experimenter has specified to
+% exclude
 % function finalSubjects = removeExcludedSubjects(allSubjects, excludedSubjects)
 %     excludedSize = size(excludedSubjects);
 %     finalSubjectIndex = 1;
@@ -73,6 +68,8 @@ end
 %     end
 % end
 
+% Function called to remove files that start with ._
+% Depends on countEmptyCells()
 function fileNames = removeDotUnderscores(setFiles)
     setFilesWithoutDotUnderscores = cell(size(setFiles));
     newArrayIndex = 1;
@@ -96,6 +93,7 @@ function fileNames = removeDotUnderscores(setFiles)
     fileNames = fileNames';
 end
 
+% Returns the number of empty cells in the cell array
 function numberOfEmptyCells = countEmptyCells(cellArray)
     numberOfEmptyCells = 0;
     for index = 1 : size(cellArray)
