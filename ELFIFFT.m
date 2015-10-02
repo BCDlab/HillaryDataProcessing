@@ -4,6 +4,8 @@ function [] = ELIFFT()
     defaults = {'LabelPre','75', ''};
     promptResponse = inputdlg(prompt,'Condition',1,defaults);
     [condition, channels] = deal(promptResponse{:});
+    
+    channels = str2num(channels);
 
     %TODO: Exclude Subjects
     % The subjects to be excluded from the calculations
