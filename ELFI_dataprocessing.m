@@ -43,7 +43,7 @@ function [] = ELFI_dataprocessing()
     eeglab redraw
 
     % Create bin-based epochs
-    EEG = pop_epochbin( EEG , [-1000.0  12000.0],  'pre'); 
+    EEG = pop_epochbin( EEG , [-100.0  10000.0],  'pre'); 
     EEG = pop_editset(EEG, 'setname', strcat('ELFI_',num2str(subject),'_9_chan_elist_filt_bins_be'));
     eeglab redraw
 

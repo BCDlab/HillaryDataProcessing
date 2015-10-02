@@ -23,7 +23,7 @@ function [] = ELIFFT()
     for subjectIndex = 1 : size(setFiles)
         EEG = pop_loadset('filename', setFiles{subjectIndex}{1}, 'filepath', directory);
         EEG = epoch2continuous(EEG);
-        [ym, f] = fourieeg(EEG,channels,[],0,7);
+        [ym, f] = fourieeg(EEG,channels,[],0,10);
         CombinedFiles(subjectIndex,:) = ym;
     end
 
