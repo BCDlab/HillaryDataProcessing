@@ -19,16 +19,20 @@ function [] = ELIFFT()
     allSetFiles = dir(pattern);
     setFiles = applyConditionFilter(allSetFiles, condition);
 
+    % Exclude the following subjects from the calculations
+    setFiles = removeExcludedSubjects(setFiles, {'5', '11'});
+
     % Find the average
     for subjectIndex = 1 : size(setFiles)
-        EEG = pop_loadset('filename', setFiles(subjectIndex).name, 'filepath', directory);
+        EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
         EEG = epoch2continuous(EEG);
-        [ym, f] = fourieeg(EEG,channels,[],0,7);
+        [ym, f] = fourieeg(EEG,channels,[],0,10);
         CombinedFiles(subjectIndex,:) = ym;
     end
 
     AveResponse = mean(CombinedFiles,1);
 
+    % NEEDS TO BE FIXED
     BaseSignal = AveResponse(57);
     bnoise = [AveResponse(37:46),AveResponse(47:57)];
     BaseNoise = mean(bnoise);
@@ -41,7 +45,9 @@ function [] = ELIFFT()
     OddRatio = OddSignal/OddNoise;
     OddSNR = mean(OddRatio);
 
+    disp('Base S/N: ');
     disp(BaseSNR);
+    disp('Odd S/N');
     disp(OddSNR);
 
     plot(f,AveResponse);
@@ -50,6 +56,7 @@ function [] = ELIFFT()
     xlabel('Frequency (Hz)')
     ylabel('Y(f)')
 end
+
 
 % function that removes all .set files that are not of the specified condition
 function filteredFiles = applyConditionFilter(unfilteredFiles, condition)
@@ -72,4 +79,40 @@ function filteredFiles = applyConditionFilter(unfilteredFiles, condition)
     % transpose the vector
     filteredFiles = filteredFiles';
     return;
+end
+
+
+% Function used to remove subjects that the experimenter has specified to exclude
+function finalSubjects = removeExcludedSubjects(allSubjects, excludedSubjects)
+    numberOfNonMatches = 0;
+    numberOfExcludedSubjects = size(excludedSubjects');
+    numberOfExcludedSubjects = numberOfExcludedSubjects(1);
+    for excludeIndex = 1 : numberOfExcludedSubjects
+        currentExcludedSubject = strcat('ELFI_', excludedSubjects{excludeIndex}, '_');
+        for allIndex = 1 : size(allSubjects)
+            if strfind(allSubjects(allIndex).name, currentExcludedSubject)
+                allSubjects(allIndex).name = '';
+            else
+                numberOfNonMatches = numberOfNonMatches + 1;
+            end
+        end
+    end
+
+    finalSubjects = removeBlankStrings(allSubjects, numberOfNonMatches ./ numberOfExcludedSubjects)';
+end
+
+
+% Function used to remove all cells that are blank from the passed array
+function out = removeBlankStrings(in, numberOfNonMatches)
+    out = cell(1, numberOfNonMatches);
+    outIndex = 1;
+    for index = 1 : size(in)
+        if ~strcmp(in(index).name, '')
+            out{outIndex} = in(index).name;
+            outIndex = outIndex + 1;
+        end
+    end
+
+    % remove blank cells if there are any left over for some reason
+    out = out(~cellfun('isempty', out));
 end
