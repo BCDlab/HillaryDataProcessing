@@ -1,3 +1,5 @@
 Bins
 Data
-
+*.asv
+*.mat
+.gitignore~
