@@ -23,26 +23,31 @@ function [] = ELFIFFT_Concat(channels)
 
     for channelIndex = 1 : size(channels)
         for subjectIndex = 1 : size(setFiles)
-            EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
-            EEG = epoch2continuous(EEG);
-            [ym, f] = fourieeg(EEG,channels(channelIndex),[],0,10);
-            CombinedSingleChannelFiles(subjectIndex,:) = ym;
-        end
-
-        if ~exist('sizeOfOneIteration')
-            sizeOfOneIteration = size(ym);
-        else
-            if sizeOfOneIteration ~= size(ym)
-                error('Size of .set file data does not match');
+            currentEEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
+            % DO WE NEED THIS?
+            % EEG = epoch2continuous(currentEEG);
+            if subjectIndex == 1
+                mergedEEG = currentEEG;
+            else
+                mergedEEG = EEG_combine(mergedEEG, currentEEG);
             end
         end
 
+        [ym, f] = fourieeg(mergedEEG,channels(channelIndex),[],0,10);
+
+        CombinedSingleChannelFiles(subjectIndex,:) = ym;
         CombinedFrequencies{:,channelIndex} = f;
         CombinedFiles{:,channelIndex} = CombinedSingleChannelFiles;
     end
 
-    AveResponse = mean(cell2mat(CombinedFiles'),1);
-    CombinedFrequencies = cell2mat(CombinedFrequencies');
+    % flip bool to view all individual channels
+    if true 
+        AveResponse = mean(cell2mat(CombinedFiles'),1);
+        CombinedFrequencies = cell2mat(CombinedFrequencies');
+    else
+        AveResponse = mean(cell2mat(CombinedFiles),1);
+        CombinedFrequencies = cell2mat(CombinedFrequencies);
+    end
 
     % FIX THIS
     BaseSignal = AveResponse(100);
@@ -71,6 +76,33 @@ function [] = ELFIFFT_Concat(channels)
     ylim auto
     xlabel('Frequency (Hz)')
     ylabel('Y(f)')
+end
+
+
+function EEG = EEG_combine(EEG1, EEG2)
+    % function EEG = EEG_combine(EEG1,EEG2)
+    % Combines two EEG data sets by concatenating across trials.
+    % Thomas Ferree
+    % Created 9/19/2007
+
+    % error catching
+    if EEG1.pnts ~= EEG2.pnts
+        error('Number of time points must be equal.');
+    end
+    if EEG1.nbchan ~= EEG2.nbchan
+        error('Number of channels must be equal.');
+    end
+    if EEG1.xmin ~= EEG2.xmin
+        error('Starting times must be equal.');
+    end
+
+    display(['Combining ' EEG1.setname ' and ' EEG2.setname '.']);
+
+    EEG = EEG1;
+    EEG.trials = EEG1.trials + EEG2.trials;
+    EEG.data = zeros(EEG.nbchan,EEG.pnts,EEG.trials);
+    EEG.data(:,:,1:EEG1.trials) = EEG1.data;
+    EEG.data(:,:,EEG1.trials+1:EEG.trials) = EEG2.data;
 end
 
 

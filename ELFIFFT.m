@@ -28,20 +28,18 @@ function [] = ELFIFFT(channels)
             CombinedSingleChannelFiles(subjectIndex,:) = ym;
         end
 
-        if ~exist('sizeOfOneIteration')
-            sizeOfOneIteration = size(ym);
-        else
-            if sizeOfOneIteration ~= size(ym)
-                error('Size of .set file data does not match');
-            end
-        end
-
         CombinedFrequencies{:,channelIndex} = f;
         CombinedFiles{:,channelIndex} = CombinedSingleChannelFiles;
     end
 
-    AveResponse = mean(cell2mat(CombinedFiles'),1);
-    CombinedFrequencies = cell2mat(CombinedFrequencies');
+    % flip bool to view all individual channels
+    if true 
+        AveResponse = mean(cell2mat(CombinedFiles'),1);
+        CombinedFrequencies = cell2mat(CombinedFrequencies');
+    else
+        AveResponse = mean(cell2mat(CombinedFiles),1);
+        CombinedFrequencies = cell2mat(CombinedFrequencies);
+    end
 
     BaseSignal = AveResponse(100);
     bnoise = [AveResponse(95:99),AveResponse(101:105)];
