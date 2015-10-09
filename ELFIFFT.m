@@ -1,16 +1,15 @@
-function [] = ELIFFT()
+function [] = ELIFFT(channels)
+    if isempty(channels)
+        channels = [75];
+    else
+        channels = channels';
+    end
+
     % Prompt the user for the condition
     conditionArray = {'LabelPre', 'LabelPost', 'NoisePre', 'NoisePost'};
     [selectionIndex, leftBlank] = listdlg('PromptString','Select a file:',...
                     'SelectionMode','single', 'ListString',conditionArray);
     condition = conditionArray{selectionIndex};
-    
-    % Prompt the user for the channels
-    prompt = {'Channels'};
-    defaults = {'75'};
-    promptResponse = inputdlg(prompt,'',1,defaults);
-    [channels] = deal(promptResponse{:});
-    channels = str2num(channels);
 
     % Prompt the user for the path to the .set files and find all of that
     % directory's .set files. Also store the number of subjects
@@ -20,17 +19,30 @@ function [] = ELIFFT()
     setFiles = applyConditionFilter(allSetFiles, condition);
 
     % Exclude the following subjects from the calculations
-    setFiles = removeExcludedSubjects(setFiles, {'5', '11'});
+    setFiles = removeExcludedSubjects(setFiles, {''});
 
-    % Find the average
-    for subjectIndex = 1 : size(setFiles)
-        EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
-        EEG = epoch2continuous(EEG);
-        [ym, f] = fourieeg(EEG,channels,[],0,10);
-        CombinedFiles(subjectIndex,:) = ym;
+    for channelIndex = 1 : size(channels)
+        for subjectIndex = 1 : size(setFiles)
+            EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
+            EEG = epoch2continuous(EEG);
+            [ym, f] = fourieeg(EEG,channels(channelIndex),[],0,10);
+            CombinedSingleChannelFiles(subjectIndex,:) = ym;
+        end
+
+        if ~exist('sizeOfOneIteration')
+            sizeOfOneIteration = size(ym);
+        else
+            if sizeOfOneIteration ~= size(ym)
+                error('Size of .set file data does not match');
+            end
+        end
+
+        CombinedFrequencies{:,channelIndex} = f;
+        CombinedFiles{:,channelIndex} = CombinedSingleChannelFiles;
     end
 
-    AveResponse = mean(CombinedFiles,1);
+    AveResponse = mean(cell2mat(CombinedFiles'),1);
+    CombinedFrequencies = cell2mat(CombinedFrequencies');
 
     % NEEDS TO BE FIXED
     BaseSignal = AveResponse(57);
@@ -45,16 +57,34 @@ function [] = ELIFFT()
     OddRatio = OddSignal/OddNoise;
     OddSNR = mean(OddRatio);
 
+    disp(' ');
     disp('Base S/N: ');
     disp(BaseSNR);
     disp('Odd S/N');
     disp(OddSNR);
 
-    plot(f,AveResponse);
+    plot(CombinedFrequencies,AveResponse);
+    dim = [.6 .7 .25 .1];
+    str = ['Base S/N: ', num2str(BaseSNR), sprintf('\n Odd S/N: '), num2str(OddSNR)];
+    annotation('textbox',dim,'String',str);
     xlim([1 7]);
     ylim auto
     xlabel('Frequency (Hz)')
     ylabel('Y(f)')
+end
+
+
+% function that averages the combined ym's or freqs into one file
+function averagedArray = averageArray(concatArray, sizeOfOneIteration, numberOfChannels)
+    averagedArray = zeros(sizeOfOneIteration);
+    numsPerIndex = size(concatArray) / sizeOfOneIteration;
+    for averageIndex = 1 : size(averagedArray)
+        currentAverage = 0;
+        for i = 1 : numsPerIndex
+            currentAverage = currentAverage + concatArray(i * averageIndex);
+        end
+        averagedArray(averageIndex) = currentAverage / numsPerIndex;
+    end
 end
 
 
