@@ -74,20 +74,6 @@ function [] = ELIFFT(channels)
 end
 
 
-% function that averages the combined ym's or freqs into one file
-function averagedArray = averageArray(concatArray, sizeOfOneIteration, numberOfChannels)
-    averagedArray = zeros(sizeOfOneIteration);
-    numsPerIndex = size(concatArray) / sizeOfOneIteration;
-    for averageIndex = 1 : size(averagedArray)
-        currentAverage = 0;
-        for i = 1 : numsPerIndex
-            currentAverage = currentAverage + concatArray(i * averageIndex);
-        end
-        averagedArray(averageIndex) = currentAverage / numsPerIndex;
-    end
-end
-
-
 % function that removes all .set files that are not of the specified condition
 function filteredFiles = applyConditionFilter(unfilteredFiles, condition)
     filteredArraySize = 0;
