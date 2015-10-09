@@ -1,4 +1,4 @@
-function [] = ELFIFFT(channels)
+function [] = ELFIFFT_Concat(channels)
     if isempty(channels)
         channels = [75];
     else
@@ -24,6 +24,7 @@ function [] = ELFIFFT(channels)
     for channelIndex = 1 : size(channels)
         for subjectIndex = 1 : size(setFiles)
             EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
+            EEG = epoch2continuous(EEG);
             [ym, f] = fourieeg(EEG,channels(channelIndex),[],0,10);
             CombinedSingleChannelFiles(subjectIndex,:) = ym;
         end
@@ -43,6 +44,7 @@ function [] = ELFIFFT(channels)
     AveResponse = mean(cell2mat(CombinedFiles'),1);
     CombinedFrequencies = cell2mat(CombinedFrequencies');
 
+    % FIX THIS
     BaseSignal = AveResponse(100);
     bnoise = [AveResponse(95:99),AveResponse(101:105)];
     BaseNoise = mean(bnoise);
