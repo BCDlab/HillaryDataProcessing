@@ -92,14 +92,9 @@ end
 
 
 % function that concatenates two EEG trials
-% credit: Thomas Ferree, UT Southwestern Medical Center
+% credit: Thomas Ferree, UT Southwestern Medical Center, 2007
 % http://sccn.ucsd.edu/pipermail/eeglablist/2008/002074.html
 function EEG = EEG_combine(EEG1, EEG2)
-    % function EEG = EEG_combine(EEG1,EEG2)
-    % Combines two EEG data sets by concatenating across trials.
-    % Thomas Ferree
-    % Created 9/19/2007
-
     % error catching
     if EEG1.pnts ~= EEG2.pnts
         error('Number of time points must be equal.');
