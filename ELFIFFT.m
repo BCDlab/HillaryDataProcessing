@@ -5,6 +5,7 @@ function [] = ELFIFFT(channels)
         channels = channels';
     end
 
+    % Prompt the user if they want to concatenate
     concatenateAcrossTrials = questdlg('Concatenate across trials?','','Yes', 'No', 'Yes');
 
     % Prompt the user for the condition
@@ -23,6 +24,7 @@ function [] = ELFIFFT(channels)
     % Exclude the following subjects from the calculations
     setFiles = removeExcludedSubjects(setFiles, {''});
 
+    % If concatenating, concatenate all then run fourieeg on concatenated data
     if strcmp(concatenateAcrossTrials, 'Yes')
         for channelIndex = 1 : size(channels)
             for subjectIndex = 1 : size(setFiles)
@@ -36,10 +38,10 @@ function [] = ELFIFFT(channels)
 
             [ym, f] = fourieeg(mergedEEG,channels(channelIndex),[],0,10);
 
-            CombinedSingleChannelFiles(subjectIndex,:) = ym;
             CombinedFrequencies{:,channelIndex} = f;
-            CombinedFiles{:,channelIndex} = CombinedSingleChannelFiles;
+            CombinedFiles{:,channelIndex} = ym;
         end
+    % Else combine all ym's as you go along
     else
         for channelIndex = 1 : size(channels)
             for subjectIndex = 1 : size(setFiles)
@@ -53,7 +55,7 @@ function [] = ELFIFFT(channels)
         end
     end
 
-    % flip bool to view all individual channels
+    % Flip bool to view all individual channels, useful for selecting channels
     if true 
         AveResponse = mean(cell2mat(CombinedFiles'),1);
         CombinedFrequencies = cell2mat(CombinedFrequencies');
@@ -62,38 +64,44 @@ function [] = ELFIFFT(channels)
         CombinedFrequencies = cell2mat(CombinedFrequencies);
     end
 
+    % Calulate the Signal/Noise ratio for the base
     BaseSignal = AveResponse(100);
     bnoise = [AveResponse(95:99),AveResponse(101:105)];
     BaseNoise = mean(bnoise);
     BaseRatio = BaseSignal/BaseNoise;
     BaseSNR = mean(BaseRatio);
 
+    % Calulate the Signal/Noise ratio for the oddball
     OddSignal = AveResponse(21); % Bin 21 is 1.22
     onoise = [AveResponse(16:20),AveResponse(22:26)];
     OddNoise = mean(onoise);
     OddRatio = OddSignal/OddNoise;
     OddSNR = mean(OddRatio);
 
+    % Display the Signal/Noise ratio
     disp(' ');
     disp('Base S/N: ');
     disp(BaseSNR);
     disp('Odd S/N');
     disp(OddSNR);
 
+    % Plot the output of the Fourier Transform against the frequency
     plot(CombinedFrequencies, AveResponse, 'b');
-    dim = [.6 .7 .25 .1];
-    str = ['Base S/N: ', num2str(BaseSNR), sprintf('\n Odd S/N: '), num2str(OddSNR)];
-    annotation('textbox',dim,'String',str);
     xlim([1 7]);
     ylim auto
     xlabel('Frequency (Hz)')
     ylabel('Y(f)')
+
+    % Make an annotated text box for the Signal/Noise ratio
+    dim = [.6 .7 .25 .1];
+    str = ['Base S/N: ', num2str(BaseSNR), sprintf('\n Odd S/N: '), num2str(OddSNR)];
+    annotation('textbox',dim,'String',str);
 end
 
 
 % function that concatenates two EEG trials
 % credit: Thomas Ferree, UT Southwestern Medical Center, 2007
-% http://sccn.ucsd.edu/pipermail/eeglablist/2008/002074.html
+% url: http://sccn.ucsd.edu/pipermail/eeglablist/2008/002074.html
 function EEG = EEG_combine(EEG1, EEG2)
     % error catching
     if EEG1.pnts ~= EEG2.pnts
@@ -136,7 +144,6 @@ function filteredFiles = applyConditionFilter(unfilteredFiles, condition)
 
     % transpose the vector
     filteredFiles = filteredFiles';
-    return;
 end
 
 
