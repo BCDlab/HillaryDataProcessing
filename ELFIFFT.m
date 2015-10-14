@@ -61,7 +61,7 @@ function [] = ELFIFFT(channels)
     end
 
     % Flip bool to view all individual channels, useful for selecting channels
-    if false 
+    if true
         AveResponse = mean(cell2mat(CombinedFiles'),1);
         CombinedFrequencies = cell2mat(CombinedFrequencies');
     else
