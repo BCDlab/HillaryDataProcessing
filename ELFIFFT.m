@@ -23,7 +23,7 @@ function [] = ELFIFFT(channels)
     % Exclude the following subjects from the calculations
     setFiles = removeExcludedSubjects(setFiles, {''});
 
-    if concatenateAcrossTrials
+    if strcmp(concatenateAcrossTrials, 'Yes')
         for channelIndex = 1 : size(channels)
             for subjectIndex = 1 : size(setFiles)
                 currentEEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
