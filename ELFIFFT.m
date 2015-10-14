@@ -1,4 +1,9 @@
 function [] = ELFIFFT(channels)
+    % Function used to perform Fourier Transforms on EEG data
+    % 
+    % Note: input data must match the form: ELFI_<participant#>_<age>_<condition>.set
+    % Where condition is LabelPre, LabelPost, NoisePre, or NoisePost
+
     if isempty(channels)
         channels = [75];
     else
@@ -6,18 +11,18 @@ function [] = ELFIFFT(channels)
     end
 
     % Prompt the user if they want to concatenate
-    concatenateAcrossTrials = questdlg('Concatenate across trials?','','Yes', 'No', 'Yes');
+    concatenateAcrossTrials = questdlg('Concatenate across trials?', '', 'Yes', 'No', 'Yes');
 
     % Prompt the user for the condition
     conditionArray = {'LabelPre', 'LabelPost', 'NoisePre', 'NoisePost'};
-    [selectionIndex, leftBlank] = listdlg('PromptString','Select a file:',...
-                    'SelectionMode','single', 'ListString',conditionArray);
+    [selectionIndex, leftBlank] = listdlg('PromptString', 'Select a file:',...
+                    'SelectionMode', 'single', 'ListString', conditionArray);
     condition = conditionArray{selectionIndex};
 
     % Prompt the user for the path to the .set files and find all of that
     % directory's .set files. Also store the number of subjects
     directory = uigetdir(pwd);
-    pattern = fullfile(directory,'*.set');
+    pattern = fullfile(directory, '*.set');
     allSetFiles = dir(pattern);
     setFiles = applyConditionFilter(allSetFiles, condition);
 
@@ -36,27 +41,27 @@ function [] = ELFIFFT(channels)
                 end
             end
 
-            [ym, f] = fourieeg(mergedEEG,channels(channelIndex),[],0,10);
+            [ym, f] = fourieeg(mergedEEG, channels(channelIndex),[],0,10);
 
-            CombinedFrequencies{:,channelIndex} = f;
-            CombinedFiles{:,channelIndex} = ym;
+            CombinedFrequencies{:, channelIndex} = f;
+            CombinedFiles{:, channelIndex} = ym;
         end
     % Else combine all ym's as you go along
     else
         for channelIndex = 1 : size(channels)
             for subjectIndex = 1 : size(setFiles)
                 EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
-                [ym, f] = fourieeg(EEG,channels(channelIndex),[],0,10);
-                CombinedSingleChannelFiles(subjectIndex,:) = ym;
+                [ym, f] = fourieeg(EEG, channels(channelIndex), [], 0, 10);
+                CombinedSingleChannelFiles(subjectIndex, :) = ym;
             end
 
-            CombinedFrequencies{:,channelIndex} = f;
-            CombinedFiles{:,channelIndex} = CombinedSingleChannelFiles;
+            CombinedFrequencies{:, channelIndex} = f;
+            CombinedFiles{:, channelIndex} = CombinedSingleChannelFiles;
         end
     end
 
     % Flip bool to view all individual channels, useful for selecting channels
-    if true 
+    if false 
         AveResponse = mean(cell2mat(CombinedFiles'),1);
         CombinedFrequencies = cell2mat(CombinedFrequencies');
     else
@@ -95,7 +100,7 @@ function [] = ELFIFFT(channels)
     % Make an annotated text box for the Signal/Noise ratio
     dim = [.6 .7 .25 .1];
     str = ['Base S/N: ', num2str(BaseSNR), sprintf('\n Odd S/N: '), num2str(OddSNR)];
-    annotation('textbox',dim,'String',str);
+    annotation('textbox', dim, 'String', str);
 end
 
 
