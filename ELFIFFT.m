@@ -5,6 +5,8 @@ function [] = ELFIFFT(channels)
         channels = channels';
     end
 
+    concatenateAcrossTrials = questdlg('Concatenate across trials?','','Yes', 'No', 'Yes');
+
     % Prompt the user for the condition
     conditionArray = {'LabelPre', 'LabelPost', 'NoisePre', 'NoisePost'};
     [selectionIndex, leftBlank] = listdlg('PromptString','Select a file:',...
@@ -21,15 +23,34 @@ function [] = ELFIFFT(channels)
     % Exclude the following subjects from the calculations
     setFiles = removeExcludedSubjects(setFiles, {''});
 
-    for channelIndex = 1 : size(channels)
-        for subjectIndex = 1 : size(setFiles)
-            EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
-            [ym, f] = fourieeg(EEG,channels(channelIndex),[],0,10);
-            CombinedSingleChannelFiles(subjectIndex,:) = ym;
-        end
+    if concatenateAcrossTrials
+        for channelIndex = 1 : size(channels)
+            for subjectIndex = 1 : size(setFiles)
+                currentEEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
+                if subjectIndex == 1
+                    mergedEEG = currentEEG;
+                else
+                    mergedEEG = EEG_combine(mergedEEG, currentEEG);
+                end
+            end
 
-        CombinedFrequencies{:,channelIndex} = f;
-        CombinedFiles{:,channelIndex} = CombinedSingleChannelFiles;
+            [ym, f] = fourieeg(mergedEEG,channels(channelIndex),[],0,10);
+
+            CombinedSingleChannelFiles(subjectIndex,:) = ym;
+            CombinedFrequencies{:,channelIndex} = f;
+            CombinedFiles{:,channelIndex} = CombinedSingleChannelFiles;
+        end
+    else
+        for channelIndex = 1 : size(channels)
+            for subjectIndex = 1 : size(setFiles)
+                EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
+                [ym, f] = fourieeg(EEG,channels(channelIndex),[],0,10);
+                CombinedSingleChannelFiles(subjectIndex,:) = ym;
+            end
+
+            CombinedFrequencies{:,channelIndex} = f;
+            CombinedFiles{:,channelIndex} = CombinedSingleChannelFiles;
+        end
     end
 
     % flip bool to view all individual channels
@@ -59,7 +80,7 @@ function [] = ELFIFFT(channels)
     disp('Odd S/N');
     disp(OddSNR);
 
-    plot(CombinedFrequencies,AveResponse);
+    plot(CombinedFrequencies, AveResponse, 'b');
     dim = [.6 .7 .25 .1];
     str = ['Base S/N: ', num2str(BaseSNR), sprintf('\n Odd S/N: '), num2str(OddSNR)];
     annotation('textbox',dim,'String',str);
@@ -67,6 +88,36 @@ function [] = ELFIFFT(channels)
     ylim auto
     xlabel('Frequency (Hz)')
     ylabel('Y(f)')
+end
+
+
+% function that concatenates two EEG trials
+% credit: Thomas Ferree, UT Southwestern Medical Center
+% http://sccn.ucsd.edu/pipermail/eeglablist/2008/002074.html
+function EEG = EEG_combine(EEG1, EEG2)
+    % function EEG = EEG_combine(EEG1,EEG2)
+    % Combines two EEG data sets by concatenating across trials.
+    % Thomas Ferree
+    % Created 9/19/2007
+
+    % error catching
+    if EEG1.pnts ~= EEG2.pnts
+        error('Number of time points must be equal.');
+    end
+    if EEG1.nbchan ~= EEG2.nbchan
+        error('Number of channels must be equal.');
+    end
+    if EEG1.xmin ~= EEG2.xmin
+        error('Starting times must be equal.');
+    end
+
+    display(['Combining ' EEG1.setname ' and ' EEG2.setname '.']);
+
+    EEG = EEG1;
+    EEG.trials = EEG1.trials + EEG2.trials;
+    EEG.data = zeros(EEG.nbchan,EEG.pnts,EEG.trials);
+    EEG.data(:,:,1:EEG1.trials) = EEG1.data;
+    EEG.data(:,:,EEG1.trials+1:EEG.trials) = EEG2.data;
 end
 
 
