@@ -41,10 +41,7 @@ function [] = ELFIFFT(channels)
             end
         end
 
-        [ym, f] = fourieeg(mergedEEG, channels,[],0,10);
-
-        CombinedFrequencies = f;
-        CombinedYMs = ym;
+        [CombinedYMs, f] = fourieeg(mergedEEG, channels,[],0,10);
 
     % Else combine all ym's as you go along
     else
@@ -59,45 +56,86 @@ function [] = ELFIFFT(channels)
 
     % Flip bool to view all individual channels, useful for selecting channels
     if true
-        AveResponse = mean(CombinedYMs,1);
+        avgResponse = mean(CombinedYMs,1);
+        f = f';
         % CombinedFrequencies = (CombinedFrequencies);
     else
-        AveResponse = mean(cell2mat(CombinedYMs),1);
-        CombinedFrequencies = cell2mat(CombinedFrequencies);
+        avgResponse = mean(cell2mat(CombinedYMs),1);
+        f = cell2mat(f');
     end
 
-    % Calulate the Signal/Noise ratio for the base
-    BaseSignal = AveResponse(100);
-    bnoise = [AveResponse(95:99),AveResponse(101:105)];
-    BaseNoise = mean(bnoise);
-    BaseRatio = BaseSignal/BaseNoise;
-    BaseSNR = mean(BaseRatio);
+    % Prompt the user about how they want to plot the data
+    plotByFreqBin = questdlg('Plot S/N for each freq bin?', '', 'Yes', 'No', 'Yes');
 
-    % Calulate the Signal/Noise ratio for the oddball
-    OddSignal = AveResponse(21); % Bin 21 is 1.22
-    onoise = [AveResponse(16:20),AveResponse(22:26)];
-    OddNoise = mean(onoise);
-    OddRatio = OddSignal/OddNoise;
-    OddSNR = mean(OddRatio);
+    if plotByFreqBin
+        sizeOfF = size(f);
+        baseSN = zeros(sizeOfF - 11);
+        oddSN = zeros(sizeOfF - 11);
+        newF = zeros(sizeOfF - 11);
+        for freqIndex = 6 : sizeOfF - 6
+            baseSignal = avgResponse(freqIndex);
+            baseNoise = [avgResponse(freqIndex - 5:freqIndex - 1), avgResponse(freqIndex + 1:freqIndex + 6)];
+            baseNoiseMean = mean(baseNoise);
+            baseRatio = baseSignal / baseNoiseMean;
+            baseSNR = mean(baseRatio);
+            newF(freqIndex - 5, 1) = f(freqIndex - 5);
+            baseSN(freqIndex - 5, 1) = baseSNR;
+        end
 
-    % Display the Signal/Noise ratio
-    disp(' ');
-    disp('Base S/N: ');
-    disp(BaseSNR);
-    disp('Odd S/N');
-    disp(OddSNR);
+        maxNum = -1;
+        freqAtMax = -1;
+        for i = 1 : size(newF)
+            if baseSN(i) > maxNum
+                maxNum = baseSN(i);
+                freqAtMax = newF(i);
+            end
+        end        
 
-    % Plot the output of the Fourier Transform against the frequency
-    plot(CombinedFrequencies, AveResponse, 'b');
-    xlim([1 7]);
-    ylim auto
-    xlabel('Frequency (Hz)')
-    ylabel('Y(f)')
+        disp(' ');
+        disp('Max S/N: ');
+        disp(maxNum);
+        disp('Freq at which Max S/N occurs: ');
+        disp(freqAtMax);
 
-    % Make an annotated text box for the Signal/Noise ratio
-    dim = [.6 .7 .25 .1];
-    str = ['Base S/N: ', num2str(BaseSNR), sprintf('\n Odd S/N: '), num2str(OddSNR)];
-    annotation('textbox', dim, 'String', str);
+        % Plot the S/N ratio against the frequency
+        plot(newF, baseSN, 'b');
+        xlim([1 7]);
+        ylim auto
+        ylabel('S/N Ratio')
+    else
+        % Calulate the Signal/Noise ratio for the base
+        baseSignal = avgResponse(100);
+        bNoise = [avgResponse(95:99), avgResponse(101:105)];
+        baseNoise = mean(bNoise);
+        baseRatio = baseSignal/baseNoise;
+        baseSNR = mean(baseRatio);
+
+        % Calulate the Signal/Noise ratio for the oddball
+        oddSignal = avgResponse(21); % Bin 21 is 1.22
+        oNoise = [avgResponse(16:20), avgResponse(22:26)];
+        oddNoise = mean(oNoise);
+        oddRatio = oddSignal/oddNoise;
+        oddSNR = mean(oddRatio);
+
+        % Display the Signal/Noise ratio
+        disp(' ');
+        disp('Base S/N: ');
+        disp(baseSNR);
+        disp('Odd S/N');
+        disp(oddSNR);
+
+        % Plot the output of the Fourier Transform against the frequency
+        plot(f, avgResponse, 'b');
+        xlim([1 7]);
+        ylim auto
+        xlabel('Frequency (Hz)')
+        ylabel('Y(f)')
+
+        % Make an annotated text box for the Signal/Noise ratio
+        dim = [.6 .7 .25 .1];
+        str = ['Base S/N: ', num2str(BaseSNR), sprintf('\n Odd S/N: '), num2str(OddSNR)];
+        annotation('textbox', dim, 'String', str);
+    end
 end
 
 
