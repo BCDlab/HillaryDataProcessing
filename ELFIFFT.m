@@ -5,6 +5,7 @@ function [] = ELFIFFT(channels)
     % Where condition is LabelPre, LabelPost, NoisePre, or NoisePost
 
     if isempty(channels)
+        disp('Channels are empty, defaulting to 75');
         channels = [75];
     else
         channels = channels';
@@ -31,41 +32,37 @@ function [] = ELFIFFT(channels)
 
     % If concatenating, concatenate all then run fourieeg on concatenated data
     if strcmp(concatenateAcrossTrials, 'Yes')
-        for channelIndex = 1 : size(channels)
-            for subjectIndex = 1 : size(setFiles)
-                currentEEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
-                if subjectIndex == 1
-                    mergedEEG = currentEEG;
-                else
-                    mergedEEG = EEG_combine(mergedEEG, currentEEG);
-                end
+        for subjectIndex = 1 : size(setFiles)
+            currentEEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
+            if subjectIndex == 1
+                mergedEEG = currentEEG;
+            else
+                mergedEEG = EEG_combine(mergedEEG, currentEEG);
             end
-
-            [ym, f] = fourieeg(mergedEEG, channels(channelIndex),[],0,10);
-
-            CombinedFrequencies{:, channelIndex} = f;
-            CombinedFiles{:, channelIndex} = ym;
         end
+
+        [ym, f] = fourieeg(mergedEEG, channels,[],0,10);
+
+        CombinedFrequencies = f;
+        CombinedYMs = ym;
+
     % Else combine all ym's as you go along
     else
-        for channelIndex = 1 : size(channels)
-            for subjectIndex = 1 : size(setFiles)
-                EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
-                [ym, f] = fourieeg(EEG, channels(channelIndex), [], 0, 10);
-                CombinedSingleChannelFiles(subjectIndex, :) = ym;
-            end
-
-            CombinedFrequencies{:, channelIndex} = f;
-            CombinedFiles{:, channelIndex} = CombinedSingleChannelFiles;
+        for subjectIndex = 1 : size(setFiles)
+            EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
+            [ym, f] = fourieeg(EEG, channels, [], 0, 10);
+            CombinedSingleChannelFiles(subjectIndex, :) = ym;
         end
+
+        CombinedYMs = CombinedSingleChannelFiles;
     end
 
     % Flip bool to view all individual channels, useful for selecting channels
     if true
-        AveResponse = mean(cell2mat(CombinedFiles'),1);
-        CombinedFrequencies = cell2mat(CombinedFrequencies');
+        AveResponse = mean(CombinedYMs,1);
+        % CombinedFrequencies = (CombinedFrequencies);
     else
-        AveResponse = mean(cell2mat(CombinedFiles),1);
+        AveResponse = mean(cell2mat(CombinedYMs),1);
         CombinedFrequencies = cell2mat(CombinedFrequencies);
     end
 
