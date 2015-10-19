@@ -28,7 +28,7 @@ function [] = ELFIFFT(channels)
     setFiles = applyConditionFilter(allSetFiles, condition);
 
     % Exclude the following subjects from the calculations
-    setFiles = removeExcludedSubjects(setFiles, {''});
+    setFiles = removeExcludedSubjects(setFiles, {'3', '15'});
 
     % If concatenating, concatenate all then run fourieeg on concatenated data
     if strcmp(concatenateAcrossTrials, 'Yes')
@@ -64,10 +64,19 @@ function [] = ELFIFFT(channels)
         f = cell2mat(f');
     end
 
+    % TODO: Look into if we should be plotting "power" 
+    % (amplitude squared) or just amplitude
+    % avgResponse = avgResponse';
+    % for i = 1 : size(avgResponse)
+    %     avgResponse(i) = sqrt(avgResponse(i));
+    %     disp('sqrt');
+    % end
+    % avgResponse = avgResponse';
+
     % Prompt the user about how they want to plot the data
     plotByFreqBin = questdlg('Plot S/N for each freq bin?', '', 'Yes', 'No', 'Yes');
 
-    if plotByFreqBin
+    if strcmp(plotByFreqBin, 'Yes')
         sizeOfF = size(f);
         baseSN = zeros(sizeOfF - 11);
         oddSN = zeros(sizeOfF - 11);
@@ -90,6 +99,10 @@ function [] = ELFIFFT(channels)
                 freqAtMax = newF(i);
             end
         end        
+
+        for i = 1 : size(newF)
+            disp(newF(i));
+        end
 
         disp(' ');
         disp('Max S/N: ');
@@ -133,7 +146,7 @@ function [] = ELFIFFT(channels)
 
         % Make an annotated text box for the Signal/Noise ratio
         dim = [.6 .7 .25 .1];
-        str = ['Base S/N: ', num2str(BaseSNR), sprintf('\n Odd S/N: '), num2str(OddSNR)];
+        str = ['Base S/N: ', num2str(baseSNR), sprintf('\n Odd S/N: '), num2str(oddSNR)];
         annotation('textbox', dim, 'String', str);
     end
 end
