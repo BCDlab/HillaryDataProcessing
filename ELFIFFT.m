@@ -58,7 +58,6 @@ function [] = ELFIFFT(channels)
     if true
         avgResponse = mean(CombinedYMs,1);
         f = f';
-        % CombinedFrequencies = (CombinedFrequencies);
     else
         avgResponse = mean(cell2mat(CombinedYMs),1);
         f = f';
@@ -66,24 +65,21 @@ function [] = ELFIFFT(channels)
 
     % TODO: Look into if we should be plotting "power" 
     % (amplitude squared) or just amplitude
-    % avgResponse = avgResponse';
-    % for i = 1 : size(avgResponse)
-    %     avgResponse(i) = sqrt(avgResponse(i));
-    %     disp('sqrt');
-    % end
-    % avgResponse = avgResponse';
+    avgResponse = avgResponse';
+    for i = 1 : size(avgResponse)
+        avgResponse(i) = sqrt(avgResponse(i));
+    end
+    avgResponse = avgResponse';
 
     % Prompt the user about how they want to plot the data
     plotByFreqBin = questdlg('Plot S/N for each freq bin?', '', 'Yes', 'No', 'Yes');
 
     if strcmp(plotByFreqBin, 'Yes')
         sizeOfF = size(f);
-        disp(sizeOfF);
         baseSN = zeros(sizeOfF - 10);
         newF = zeros(sizeOfF - 10);
         for freqIndex = 6 : sizeOfF - 5
             noiseRange = [avgResponse(freqIndex - 5:freqIndex - 1), avgResponse(freqIndex + 1:freqIndex + 5)];
-            disp(size(noiseRange));
             baseSNR = avgResponse(freqIndex) / mean(noiseRange);
             newF(freqIndex - 5, 1) = f(freqIndex);
             baseSN(freqIndex - 5, 1) = baseSNR;
@@ -111,7 +107,7 @@ function [] = ELFIFFT(channels)
         ylabel('S/N Ratio');
 
         % Make an annotated text box for the max Signal/Noise ratio
-        dim = [.2 .7 .3 .1];
+        dim = [.4 .7 .3 .1];
         str = ['Max S/N: ', num2str(maxNum), sprintf('\nOccurs at freq: '), num2str(freqAtMax)];
         annotation('textbox', dim, 'String', str);
     else
@@ -144,7 +140,7 @@ function [] = ELFIFFT(channels)
         ylabel('Y(f)')
 
         % Make an annotated text box for the Signal/Noise ratio
-        dim = [.6 .7 .25 .1];
+        dim = [.4 .7 .25 .1];
         str = ['Base S/N: ', num2str(baseSNR), sprintf('\n Odd S/N: '), num2str(oddSNR)];
         annotation('textbox', dim, 'String', str);
     end
