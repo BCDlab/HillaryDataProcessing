@@ -78,13 +78,14 @@ function [] = ELFIFFT(channels)
 
     if strcmp(plotByFreqBin, 'Yes')
         sizeOfF = size(f);
-        baseSN = zeros(sizeOfF - 12);
-        newF = zeros(sizeOfF - 12);
-        for freqIndex = 7 : sizeOfF - 6
-            baseSignal = avgResponse(freqIndex);
-            noiseRange = [avgResponse(freqIndex - 6:freqIndex - 1), avgResponse(freqIndex + 1:freqIndex + 6)];
-            baseSNR = baseSignal / mean(noiseRange);
-            newF(freqIndex - 5, 1) = f(freqIndex - 5);
+        disp(sizeOfF);
+        baseSN = zeros(sizeOfF - 10);
+        newF = zeros(sizeOfF - 10);
+        for freqIndex = 6 : sizeOfF - 5
+            noiseRange = [avgResponse(freqIndex - 5:freqIndex - 1), avgResponse(freqIndex + 1:freqIndex + 5)];
+            disp(size(noiseRange));
+            baseSNR = avgResponse(freqIndex) / mean(noiseRange);
+            newF(freqIndex - 5, 1) = f(freqIndex);
             baseSN(freqIndex - 5, 1) = baseSNR;
         end
 
