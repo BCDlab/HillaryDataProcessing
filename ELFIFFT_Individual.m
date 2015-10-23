@@ -30,119 +30,103 @@ function [] = ELFIFFT(channels)
     % Prompt the user if they want to concatenate
     concatenateAcrossTrials = questdlg('Concatenate across trials?', '', 'Yes', 'No', 'Yes');
 
-    % If concatenating, concatenate all then run fourieeg on concatenated data
-    if strcmp(concatenateAcrossTrials, 'Yes')
-        for subjectIndex = 1 : size(setFiles)
-            currentEEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
-            if subjectIndex == 1
-                mergedEEG = currentEEG;
-            else
-                mergedEEG = EEG_combine(mergedEEG, currentEEG);
-            end
-        end
-
-        [CombinedYMs, f] = fourieeg(mergedEEG, channels,[],0,10);
-
-    % Else combine all ym's as you go along
-    else
-        for subjectIndex = 1 : size(setFiles)
-            EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
-            [ym, f] = fourieeg(EEG, channels, [], 0, 10);
-            CombinedSingleChannelFiles(subjectIndex, :) = ym;
-        end
-
-        CombinedYMs = CombinedSingleChannelFiles;
-    end
-
-    % Flip bool to view all individual channels, useful for selecting channels
-    if true
-        avgResponse = mean(CombinedYMs,1);
-        f = f';
-    else
-        avgResponse = mean(cell2mat(CombinedYMs),1);
-        f = f';
-    end
-
-    % TODO: Look into if we should be plotting "power" 
-    % (amplitude squared) or just amplitude
-    % avgResponse = avgResponse';
-    % for i = 1 : size(avgResponse)
-    %     avgResponse(i) = sqrt(avgResponse(i));
-    % end
-    % avgResponse = avgResponse';
-
     % Prompt the user about how they want to plot the data
-    plotByFreqBin = questdlg('Plot S/N for each freq bin?', '', 'Yes', 'No', 'Yes');
+    plotByFreqBin = questdlg('Plot S/N for each freq bin?', '', 'Yes', 'No', 'Yes');    
 
-    if strcmp(plotByFreqBin, 'Yes')
-        sizeOfF = size(f);
-        baseSN = zeros(sizeOfF - 10);
-        newF = zeros(sizeOfF - 10);
-        for freqIndex = 6 : sizeOfF - 5
-            noiseRange = [avgResponse(freqIndex - 5:freqIndex - 1), avgResponse(freqIndex + 1:freqIndex + 5)];
-            baseSNR = avgResponse(freqIndex) / mean(noiseRange);
-            newF(freqIndex - 5, 1) = f(freqIndex);
-            baseSN(freqIndex - 5, 1) = baseSNR;
-        end
+    for subjectIndex = 1 : size(setFiles)
+        EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
+        [ym, f] = fourieeg(EEG, channels, [], 0, 10);
 
-        maxNum = -1;
-        freqAtMax = -1;
-        for i = 1 : size(newF)
-            if baseSN(i) > maxNum
-                maxNum = baseSN(i);
-                freqAtMax = newF(i);
+        % TODO: Look into if we should be plotting "power" 
+        % (amplitude squared) or just amplitude
+        % ym = ym';
+        % for i = 1 : size(ym)
+        %     ym(i) = sqrt(ym(i));
+        % end
+        % ym = ym';
+
+        if strcmp(plotByFreqBin, 'Yes')
+            sizeOfF = size(f);
+            baseSN = zeros(sizeOfF - 10);
+            newF = zeros(sizeOfF - 10);
+            for freqIndex = 6 : sizeOfF - 5
+                noiseRange = [ym(freqIndex - 5:freqIndex - 1), ym(freqIndex + 1:freqIndex + 5)];
+                baseSNR = ym(freqIndex) / mean(noiseRange);
+                newF(freqIndex - 5, 1) = f(freqIndex);
+                baseSN(freqIndex - 5, 1) = baseSNR;
             end
+
+            maxNum = -1;
+            freqAtMax = -1;
+            for i = 1 : size(newF)
+                if baseSN(i) > maxNum
+                    maxNum = baseSN(i);
+                    freqAtMax = newF(i);
+                end
+            end
+
+            disp(' ');
+            disp('Max S/N: ');
+            disp(maxNum);
+            disp('Freq at which Max S/N occurs: ');
+            disp(freqAtMax);
+
+            % Plot the S/N ratio against the frequency
+            plot(newF, baseSN, 'b');
+            xlim([1 7]);
+            ylim auto;
+            ylabel('S/N Ratio');
+
+            % Make an annotated text box for the max Signal/Noise ratio
+            dim = [.4 .7 .3 .1];
+            str = ['Max S/N: ', num2str(maxNum), sprintf('\nOccurs at freq: '), num2str(freqAtMax)];
+            annotation('textbox', dim, 'String', str);
+
+            sizeOfSetFileName = size(setFiles{subjectIndex});
+            sizeOfSetFileName = sizeOfSetFileName(1, 2);
+
+            % save the plot
+            print(['Plots/' setFiles{subjectIndex}(1:sizeOfSetFileName - 4)], '-dpng');
+        else
+            % Calulate the Signal/Noise ratio for the base
+            baseSignal = ym(99);
+            bNoise = [ym(94:98), ym(100:104)];
+            baseNoise = mean(bNoise);
+            baseRatio = baseSignal/baseNoise;
+            baseSNR = mean(baseRatio);
+
+            % Calulate the Signal/Noise ratio for the oddball
+            oddSignal = ym(19); % Bin 21 is 1.22
+            oNoise = [ym(14:18), ym(20:24)];
+            oddNoise = mean(oNoise);
+            oddRatio = oddSignal/oddNoise;
+            oddSNR = mean(oddRatio);
+
+            % Display the Signal/Noise ratio
+            disp(' ');
+            disp('Base S/N: ');
+            disp(baseSNR);
+            disp('Odd S/N');
+            disp(oddSNR);
+
+            % Plot the output of the Fourier Transform against the frequency
+            plot(f, ym, 'b');
+            xlim([1 7]);
+            ylim auto
+            xlabel('Frequency (Hz)')
+            ylabel('Y(f)')
+
+            % Make an annotated text box for the Signal/Noise ratio
+            dim = [.4 .7 .25 .1];
+            str = ['Base S/N: ', num2str(baseSNR), sprintf('\n Odd S/N: '), num2str(oddSNR)];
+            annotation('textbox', dim, 'String', str);
+
+            sizeOfSetFileName = size(setFiles{subjectIndex});
+            sizeOfSetFileName = sizeOfSetFileName';
+
+            % save the plot
+            print(['Plots/' setFiles{subjectIndex}(1:sizeOfSetFileName - 3)], '.png');
         end
-
-        disp(' ');
-        disp('Max S/N: ');
-        disp(maxNum);
-        disp('Freq at which Max S/N occurs: ');
-        disp(freqAtMax);
-
-        % Plot the S/N ratio against the frequency
-        plot(newF, baseSN, 'b');
-        xlim([1 7]);
-        ylim auto;
-        ylabel('S/N Ratio');
-
-        % Make an annotated text box for the max Signal/Noise ratio
-        dim = [.4 .7 .3 .1];
-        str = ['Max S/N: ', num2str(maxNum), sprintf('\nOccurs at freq: '), num2str(freqAtMax)];
-        annotation('textbox', dim, 'String', str);
-    else
-        % Calulate the Signal/Noise ratio for the base
-        baseSignal = avgResponse(99);
-        bNoise = [avgResponse(94:98), avgResponse(100:104)];
-        baseNoise = mean(bNoise);
-        baseRatio = baseSignal/baseNoise;
-        baseSNR = mean(baseRatio);
-
-        % Calulate the Signal/Noise ratio for the oddball
-        oddSignal = avgResponse(19); % Bin 21 is 1.22
-        oNoise = [avgResponse(14:18), avgResponse(20:24)];
-        oddNoise = mean(oNoise);
-        oddRatio = oddSignal/oddNoise;
-        oddSNR = mean(oddRatio);
-
-        % Display the Signal/Noise ratio
-        disp(' ');
-        disp('Base S/N: ');
-        disp(baseSNR);
-        disp('Odd S/N');
-        disp(oddSNR);
-
-        % Plot the output of the Fourier Transform against the frequency
-        plot(f, avgResponse, 'b');
-        xlim([1 7]);
-        ylim auto
-        xlabel('Frequency (Hz)')
-        ylabel('Y(f)')
-
-        % Make an annotated text box for the Signal/Noise ratio
-        dim = [.4 .7 .25 .1];
-        str = ['Base S/N: ', num2str(baseSNR), sprintf('\n Odd S/N: '), num2str(oddSNR)];
-        annotation('textbox', dim, 'String', str);
     end
 end
 
