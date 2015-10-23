@@ -89,8 +89,6 @@ function [] = ELFIFFT(channels)
             baseSN(freqIndex - 5, 1) = baseSNR;
         end
 
-        % disp(newF);
-
         maxNum = -1;
         freqAtMax = -1;
         for i = 1 : size(newF)
@@ -109,8 +107,13 @@ function [] = ELFIFFT(channels)
         % Plot the S/N ratio against the frequency
         plot(newF, baseSN, 'b');
         xlim([1 7]);
-        ylim auto
-        ylabel('S/N Ratio')
+        ylim auto;
+        ylabel('S/N Ratio');
+
+        % Make an annotated text box for the max Signal/Noise ratio
+        dim = [.2 .7 .3 .1];
+        str = ['Max S/N: ', num2str(maxNum), sprintf('\nOccurs at freq: '), num2str(freqAtMax)];
+        annotation('textbox', dim, 'String', str);
     else
         % Calulate the Signal/Noise ratio for the base
         baseSignal = avgResponse(99);
@@ -120,8 +123,8 @@ function [] = ELFIFFT(channels)
         baseSNR = mean(baseRatio);
 
         % Calulate the Signal/Noise ratio for the oddball
-        oddSignal = avgResponse(21); % Bin 21 is 1.22
-        oNoise = [avgResponse(16:20), avgResponse(22:26)];
+        oddSignal = avgResponse(19); % Bin 21 is 1.22
+        oNoise = [avgResponse(14:18), avgResponse(20:24)];
         oddNoise = mean(oNoise);
         oddRatio = oddSignal/oddNoise;
         oddSNR = mean(oddRatio);
