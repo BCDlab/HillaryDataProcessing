@@ -61,7 +61,7 @@ function [] = ELFIFFT(channels)
         % CombinedFrequencies = (CombinedFrequencies);
     else
         avgResponse = mean(cell2mat(CombinedYMs),1);
-        f = cell2mat(f');
+        f = f';
     end
 
     % TODO: Look into if we should be plotting "power" 
@@ -78,18 +78,17 @@ function [] = ELFIFFT(channels)
 
     if strcmp(plotByFreqBin, 'Yes')
         sizeOfF = size(f);
-        baseSN = zeros(sizeOfF - 11);
-        oddSN = zeros(sizeOfF - 11);
-        newF = zeros(sizeOfF - 11);
-        for freqIndex = 6 : sizeOfF - 6
+        baseSN = zeros(sizeOfF - 12);
+        newF = zeros(sizeOfF - 12);
+        for freqIndex = 7 : sizeOfF - 6
             baseSignal = avgResponse(freqIndex);
-            baseNoise = [avgResponse(freqIndex - 5:freqIndex - 1), avgResponse(freqIndex + 1:freqIndex + 6)];
-            baseNoiseMean = mean(baseNoise);
-            baseRatio = baseSignal / baseNoiseMean;
-            baseSNR = mean(baseRatio);
+            noiseRange = [avgResponse(freqIndex - 6:freqIndex - 1), avgResponse(freqIndex + 1:freqIndex + 6)];
+            baseSNR = baseSignal / mean(noiseRange);
             newF(freqIndex - 5, 1) = f(freqIndex - 5);
             baseSN(freqIndex - 5, 1) = baseSNR;
         end
+
+        % disp(newF);
 
         maxNum = -1;
         freqAtMax = -1;
@@ -98,10 +97,6 @@ function [] = ELFIFFT(channels)
                 maxNum = baseSN(i);
                 freqAtMax = newF(i);
             end
-        end        
-
-        for i = 1 : size(newF)
-            disp(newF(i));
         end
 
         disp(' ');
@@ -117,8 +112,8 @@ function [] = ELFIFFT(channels)
         ylabel('S/N Ratio')
     else
         % Calulate the Signal/Noise ratio for the base
-        baseSignal = avgResponse(100);
-        bNoise = [avgResponse(95:99), avgResponse(101:105)];
+        baseSignal = avgResponse(99);
+        bNoise = [avgResponse(94:98), avgResponse(100:104)];
         baseNoise = mean(bNoise);
         baseRatio = baseSignal/baseNoise;
         baseSNR = mean(baseRatio);
