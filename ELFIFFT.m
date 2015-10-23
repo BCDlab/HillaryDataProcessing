@@ -6,7 +6,7 @@ function [] = ELFIFFT(channels)
 
     if isempty(channels)
         disp('Channels are empty, defaulting to 75');
-        channels = [75];
+        channels = 75;
     else
         channels = channels';
     end
