@@ -1,4 +1,4 @@
-function [] = ELFIFFT(channels)
+function [] = ELFIFFT_Individual(channels)
     % Function used to perform Fourier Transforms on EEG data
     % 
     % Note: input data must match the form: ELFI_<participant#>_<age>_<condition>.set
@@ -34,6 +34,9 @@ function [] = ELFIFFT(channels)
     plotByFreqBin = questdlg('Plot S/N for each freq bin?', '', 'Yes', 'No', 'Yes');    
 
     for subjectIndex = 1 : size(setFiles)
+        % flush the plot window
+        clf('reset');
+
         EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
         [ym, f] = fourieeg(EEG, channels, [], 0, 10);
 
@@ -46,9 +49,10 @@ function [] = ELFIFFT(channels)
         % ym = ym';
 
         if strcmp(plotByFreqBin, 'Yes')
-            sizeOfF = size(f);
-            baseSN = zeros(sizeOfF - 10);
-            newF = zeros(sizeOfF - 10);
+            sizeOfF = size(f');
+            baseSN = zeros(sizeOfF(1, 1) - 10, 1);
+            newF = zeros(sizeOfF(1, 1) - 10, 1);
+
             for freqIndex = 6 : sizeOfF - 5
                 noiseRange = [ym(freqIndex - 5:freqIndex - 1), ym(freqIndex + 1:freqIndex + 5)];
                 baseSNR = ym(freqIndex) / mean(noiseRange);
@@ -57,36 +61,43 @@ function [] = ELFIFFT(channels)
             end
 
             maxNum = -1;
-            freqAtMax = -1;
-            for i = 1 : size(newF)
-                if baseSN(i) > maxNum
+            maxNumFreq = -1;
+            maxI = -1;
+            for i = 1 : size(baseSN)
+                if maxNum < baseSN(i)
                     maxNum = baseSN(i);
-                    freqAtMax = newF(i);
+                    maxNumFreq = newF(i);
+                    maxI = i;
                 end
             end
 
             disp(' ');
+            disp('Bin 99 S/N: ');
+            disp(baseSN(94));
             disp('Max S/N: ');
             disp(maxNum);
-            disp('Freq at which Max S/N occurs: ');
-            disp(freqAtMax);
+            disp('Max S/N occurs at: ');
+            disp(maxNumFreq);
 
             % Plot the S/N ratio against the frequency
             plot(newF, baseSN, 'b');
             xlim([1 7]);
             ylim auto;
             ylabel('S/N Ratio');
+            xlabel('Freqency');
 
             % Make an annotated text box for the max Signal/Noise ratio
-            dim = [.4 .7 .3 .1];
-            str = ['Max S/N: ', num2str(maxNum), sprintf('\nOccurs at freq: '), num2str(freqAtMax)];
+            dim = [.29 .67 .32 .15];
+            str = ['Bin 99 S/N: ' num2str(baseSN(94)) sprintf('\nMax S/N: ') ...
+                    num2str(maxNum) sprintf('\nMax S/N Occurs at: ') num2str(maxNumFreq)];
             annotation('textbox', dim, 'String', str);
 
             sizeOfSetFileName = size(setFiles{subjectIndex});
             sizeOfSetFileName = sizeOfSetFileName(1, 2);
 
             % save the plot
-            print(['Plots/' setFiles{subjectIndex}(1:sizeOfSetFileName - 4)], '-dpng');
+            fileName = ['Plots/PerBin/' setFiles{subjectIndex}(1:sizeOfSetFileName - 4) '_SNPerBin'];
+            print(fileName, '-dpng');
         else
             % Calulate the Signal/Noise ratio for the base
             baseSignal = ym(99);
@@ -122,10 +133,11 @@ function [] = ELFIFFT(channels)
             annotation('textbox', dim, 'String', str);
 
             sizeOfSetFileName = size(setFiles{subjectIndex});
-            sizeOfSetFileName = sizeOfSetFileName';
+            sizeOfSetFileName = sizeOfSetFileName(1, 2);
 
-            % save the plot
-            print(['Plots/' setFiles{subjectIndex}(1:sizeOfSetFileName - 3)], '.png');
+            % save the plot  setFiles{subjectIndex}(1:sizeOfSetFileName - 4)
+            fileName = ['Plots/SingleBin/' num2str(subjectIndex) '_SNSingleBin'];
+            print(fileName, '-dpng');
         end
     end
 end
