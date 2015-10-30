@@ -1,6 +1,7 @@
 Bins
 Data
 Plots
+Output
 *.asv
 *.mat
 *~
