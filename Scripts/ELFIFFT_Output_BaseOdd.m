@@ -2,7 +2,8 @@ function [] = ELFIFFT(channels)
     % Function used to perform Fourier Transforms on EEG data
     % 
     % Note: input data must match the form: ELFI_<participant#>_<age>_<condition>.set
-    % Where condition is LabelPre, LabelPost, NoisePre, or NoisePost
+    % Where condition is LabelPre, LabelPost, NoisePre, or NoisePost.
+    % The .set files must also have their accompanying .fdt files
 
     if isempty(channels)
         disp('Channels are empty, defaulting to 75');
