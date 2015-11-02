@@ -1,6 +1,17 @@
-function [channels, condition, directory, setFiles, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude] = promptUserForInputData(channels)
+function [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude] = promptUserForInputData(channels, promptConditions, promptSNvFreq)
 	% Function that handles prompting the user for input data common
 	% across several data processing scripts
+    %
+    % Note: second and third input parameters are optional and default to 1
+
+    if nargin == 1
+        promptConditions = 1;
+        promptSNvFreq = 1;
+    elseif nargin == 2
+        promptSNvFreq = 1;
+    end
+
+    excludedSubjects = {'3', '15'};
 
 	if isempty(channels)
         disp('Channels are empty, defaulting to 75');
@@ -9,21 +20,32 @@ function [channels, condition, directory, setFiles, concatenateAcrossTrials, plo
         channels = channels';
     end
 
-    % Prompt the user for the condition
-    conditionArray = {'LabelPre', 'LabelPost', 'NoisePre', 'NoisePost'};
-    [selectionIndex, leftBlank] = listdlg('PromptString', 'Select a file:',...
-                    'SelectionMode', 'single', 'ListString', conditionArray);
-    condition = conditionArray{selectionIndex};
-
     % Prompt the user for the path to the .set files and find all of that
     % directory's .set files. Also store the number of subjects
     directory = uigetdir('../Data');
     pattern = fullfile(directory, '*.set');
     allSetFiles = dir(pattern);
-    setFiles = applyConditionFilter(allSetFiles, condition);
+
+    % Prompt the user for the condition if requested, else pick one and all return all conditions as well
+    % as all set files
+    conditionArray = {'LabelPre', 'LabelPost', 'NoisePre', 'NoisePost'};
+    if promptConditions
+        [selectionIndex, leftBlank] = listdlg('PromptString', 'Select a file:',...
+                        'SelectionMode', 'single', 'ListString', conditionArray);
+        condition = conditionArray{selectionIndex};
+        setFiles = applyConditionFilter(allSetFiles, condition);
+        nParticipants = size(setFiles);
+    else
+        condition = conditionArray;
+        tempSetFiles = applyConditionFilter(allSetFiles, condition{1});
+        sizeTempFiles = size(tempSetFiles);
+        sizeExcludedSubjects = size(excludedSubjects);
+        nParticipants = sizeTempFiles(1) - sizeExcludedSubjects(1);
+        setFiles = allSetFiles;
+    end
 
     % Exclude the following subjects from the calculations
-    setFiles = removeExcludedSubjects(setFiles, {'3', '15'});
+    setFiles = removeExcludedSubjects(setFiles, excludedSubjects);
 
     if isempty(setFiles)
         error('No .set files found matching your input parameters');
@@ -33,7 +55,11 @@ function [channels, condition, directory, setFiles, concatenateAcrossTrials, plo
     concatenateAcrossTrials = questdlg('Concatenate across trials?', '', 'Yes', 'No', 'Yes');
 
     % Prompt the user about how they want to plot the data
-    plotBySNvFreq = questdlg('Plot S/N for each freq bin?', '', 'Yes', 'No', 'Yes');
+    if promptSNvFreq
+        plotBySNvFreq = questdlg('Plot S/N for each freq bin?', '', 'Yes', 'No', 'Yes');
+    else
+        plotBySNvFreq = '';
+    end
 
     % Prompt the user if they want to plot power or amplitude
     powerOrAmplitude = questdlg('Plot Power or Amplitude?', '', 'Amplitude', 'Power', 'Amplitude');

@@ -3,11 +3,11 @@ function [] = ELFIFFT_Individual(channels)
     % 
     % Note: input data must match the form: ELFI_<participant#>_<age>_<condition>.set
     % Where condition is LabelPre, LabelPost, NoisePre, or NoisePost.
-    % The .set files must also have their accompanying .fdt files
+    % The .set files must also have their accompanying .fdt files.
 
     % make sure that the Utilities folder is on the path
     adjustPath();
-    
+
     % Prompt the user for input parameters
     [channels, condition, directory, setFiles, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude] = promptUserForInputData(channels);
 

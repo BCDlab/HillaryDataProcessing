@@ -1,6 +1,6 @@
 function out = removeBlankStrings(in, numberOfNonMatches)
     % Function used to remove all cells that are blank from the passed array
-    out = cell(1, numberOfNonMatches);
+    out = cell(1, floor(numberOfNonMatches));
     outIndex = 1;
     for index = 1 : size(in)
         if ~strcmp(in(index).name, '')
