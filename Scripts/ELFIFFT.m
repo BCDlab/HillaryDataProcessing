@@ -1,5 +1,5 @@
 function [] = ELFIFFT(channels)
-    % Function used to perform Fourier Transforms on EEG data
+    % Function used to perform Fourier Transforms on EEG data across multiple participants.
     % 
     % Note: input data must match the form: ELFI_<participant#>_<age>_<condition>.set
     % Where condition is LabelPre, LabelPost, NoisePre, or NoisePost.
@@ -8,7 +8,9 @@ function [] = ELFIFFT(channels)
     % make sure that the Utilities folder is on the path
     adjustPath();
 
-    [channels, condition, directory, setFiles, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude] = promptUserForInputData(channels);
+    % Prompt the user for input parameters
+    [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude]...
+        = promptUserForInputData(channels);
 
     % If concatenating, concatenate all then run fourieeg on concatenated data
     if strcmp(concatenateAcrossTrials, 'Yes')
@@ -38,6 +40,7 @@ function [] = ELFIFFT(channels)
 
     % TODO: Look into if we should be plotting "power" 
     % (amplitude squared) or just amplitude
+    % disp(powerOrAmplitude);
     if strcmp(powerOrAmplitude, 'Power')
         avgResponse = amplitudeToPower(avgResponse);
     end

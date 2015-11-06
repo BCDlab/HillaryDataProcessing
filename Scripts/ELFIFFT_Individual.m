@@ -1,5 +1,5 @@
 function [] = ELFIFFT_Individual(channels)
-    % Function used to perform Fourier Transforms on a single participant's EEG data
+    % Function used to perform Fourier Transforms on a single participant's EEG data.
     % 
     % Note: input data must match the form: ELFI_<participant#>_<age>_<condition>.set
     % Where condition is LabelPre, LabelPost, NoisePre, or NoisePost.
@@ -9,7 +9,8 @@ function [] = ELFIFFT_Individual(channels)
     adjustPath();
 
     % Prompt the user for input parameters
-    [channels, condition, directory, setFiles, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude] = promptUserForInputData(channels);
+    [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude]...
+        = promptUserForInputData(channels);
 
     % the starting (x, y) coordinate pair of the annotated text box
     annotationStartPosition = [.29 .67];

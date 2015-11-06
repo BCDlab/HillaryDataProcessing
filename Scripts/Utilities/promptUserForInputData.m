@@ -1,13 +1,17 @@
-function [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude] = promptUserForInputData(channels, promptConditions, promptSNvFreq)
+function [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude] = promptUserForInputData(channels, promptConditions, promptConcat, promptSNvFreq)
 	% Function that handles prompting the user for input data common
-	% across several data processing scripts
+	% across several data processing scripts.
     %
     % Note: second and third input parameters are optional and default to 1
 
     if nargin == 1
         promptConditions = 1;
         promptSNvFreq = 1;
+        promptConcat = 1;
     elseif nargin == 2
+        promptConcat = 1;
+        promptSNvFreq = 1;
+    elseif nargin == 3
         promptSNvFreq = 1;
     end
 
@@ -52,7 +56,11 @@ function [channels, condition, directory, setFiles, nParticipants, concatenateAc
     end
 
     % Prompt the user if they want to concatenate
-    concatenateAcrossTrials = questdlg('Concatenate across trials?', '', 'Yes', 'No', 'Yes');
+    if promptConcat == 1
+        concatenateAcrossTrials = questdlg('Concatenate across trials?', '', 'Yes', 'No', 'Yes');
+    else
+        concatenateAcrossTrials = 'No';
+    end
 
     % Prompt the user about how they want to plot the data
     if promptSNvFreq
