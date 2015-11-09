@@ -44,7 +44,6 @@ function [] = ELFIFFT(channels)
 
     % TODO: Look into if we should be plotting "power" 
     % (amplitude squared) or just amplitude
-    % disp(powerOrAmplitude);
     if strcmp(powerOrAmplitude, 'Power')
         avgResponse = amplitudeToPower(avgResponse);
     end
@@ -62,18 +61,25 @@ function [] = ELFIFFT(channels)
         % find data on the maximum signal/noise
         maxNum = -1;
         freqAtMax = -1;
+        bin = -1;
         for i = 1 : size(newF)
             if SN(i) > maxNum
                 maxNum = SN(i);
                 freqAtMax = newF(i);
+                bin = i;
             end
         end
 
+        disp(bin);
         disp(' ');
         disp('Max S/N: ');
         disp(maxNum);
         disp('Freq at which Max S/N occurs: ');
         disp(freqAtMax);
+        disp('Base SN: ');
+        disp(SN(94));
+        disp('Odd SN: ');
+        disp(SN(14));
 
         % Plot the S/N ratio against the frequency
         scatter(newF, SN, 'b', '.');
@@ -83,8 +89,8 @@ function [] = ELFIFFT(channels)
         ylabel('S/N Ratio');
 
         % Make an annotated text box for the max Signal/Noise ratio
-        dim = [annotationStartPosition(1) annotationStartPosition(2) .3 .1];
-        str = ['Max S/N: ', num2str(maxNum), sprintf('\nOccurs at freq: '), num2str(freqAtMax)];
+        dim = [annotationStartPosition(1) annotationStartPosition(2) .25 .1];
+        str = ['Base S/N: ', num2str(SN(94)), sprintf('\nOdd S/N: '), num2str(SN(14))];
         annotation('textbox', dim, 'String', str);
     else
         % calculate the signal/noise ratios

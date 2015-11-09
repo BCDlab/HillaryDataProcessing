@@ -75,12 +75,14 @@ function [] = ELFIFFT_Individual(channels)
             end
 
             disp(' ');
-            disp('Bin 99 S/N: ');
-            disp(SN(94));
             disp('Max S/N: ');
             disp(maxNum);
             disp('Max S/N occurs at: ');
             disp(maxNumFreq);
+            disp('Base SN: ');
+            disp(SN(94));
+            disp('Odd SN: ');
+            disp(SN(14));
 
             % Plot the S/N ratio against the frequency
             scatter(newF, SN, 'b', '.');
@@ -91,9 +93,8 @@ function [] = ELFIFFT_Individual(channels)
             xlabel('Freqency');
 
             % Make an annotated text box for the max Signal/Noise ratio
-            textBoxDimensions = [annotationStartPosition(1) annotationStartPosition(2) .31 .14];
-            textBoxString = ['Bin 99 S/N: ' num2str(SN(94)) sprintf('\nMax S/N: ') ...
-                    num2str(maxNum) sprintf('\nMax S/N Occurs at: ') num2str(maxNumFreq)];
+            textBoxDimensions = [annotationStartPosition(1) annotationStartPosition(2) .25 .1];
+            textBoxString = ['Base S/N: ', num2str(SN(94)), sprintf('\nOdd S/N: '), num2str(SN(14))];
             annotation('textbox', textBoxDimensions, 'String', textBoxString);
 
             % save the plot
