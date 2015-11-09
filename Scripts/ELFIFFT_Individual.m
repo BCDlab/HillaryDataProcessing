@@ -3,14 +3,40 @@ function [] = ELFIFFT_Individual(channels)
     % 
     % Note: input data must match the form: ELFI_<participant#>_<age>_<condition>.set
     % Where condition is LabelPre, LabelPost, NoisePre, or NoisePost.
+    % If using adult data, specify any value other than '6' or '9' for the age.
     % The .set files must also have their accompanying .fdt files.
+    %
+    % This script requires and will automatically create the following directory structure:
+    %
+    %                                            |-----6month  
+    %                                    |----SN |-----9month
+    %                                    |       |-----Other
+    %   HillaryDataProcessing |----Plots |
+    %                                    |       |-----6month
+    %                                    |----YM |-----9month
+    %                                            |-----Other
+    %
 
     % make sure that the Utilities folder is on the path
     adjustPath();
 
+    % if needed, create the directory structure
+    createDirectoryStructure();
+
     % Prompt the user for input parameters
     [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude]...
         = promptUserForInputData(channels);
+
+    sixNine = getSixOrNineMonths(setFiles{1});
+
+    if sixNine == 6
+        SixOrNineMonths = '6months/';
+    elseif sixNine == 9
+        SixOrNineMonths = '9months/';
+    else
+        % dump them all into one folder (ex: adult data)
+        SixOrNineMonths = 'Other/';
+    end
 
     % the starting (x, y) coordinate pair of the annotated text box
     annotationStartPosition = [.29 .67];
@@ -57,7 +83,8 @@ function [] = ELFIFFT_Individual(channels)
             disp(maxNumFreq);
 
             % Plot the S/N ratio against the frequency
-            plot(newF, SN, 'b');
+            scatter(newF, SN, 'b', '.');
+            drawNonInterpolatedLines(SN, newF);
             xlim([1 7]);
             ylim auto;
             ylabel('S/N Ratio');
@@ -72,7 +99,7 @@ function [] = ELFIFFT_Individual(channels)
             % save the plot
             sizeOfSetFileName = size(setFiles{subjectIndex});
             sizeOfSetFileName = sizeOfSetFileName(1, 2);
-            fileName = [plotsDirectory 'PerBin/' setFiles{subjectIndex}(1:sizeOfSetFileName - 4) '_SNPerBin'];
+            fileName = [plotsDirectory 'SN/' SixOrNineMonths setFiles{subjectIndex}(1:sizeOfSetFileName - 4)];
             print(fileName, '-dpng');
         else
             [baseSNR, oddSNR] = getSN_ymVf(ym, f);
@@ -99,8 +126,50 @@ function [] = ELFIFFT_Individual(channels)
             % save the plot
             sizeOfSetFileName = size(setFiles{subjectIndex});
             sizeOfSetFileName = sizeOfSetFileName(1, 2);
-            fileName = [plotsDirectory 'SingleBin/' num2str(subjectIndex) '_SNSingleBin'];
+            fileName = [plotsDirectory 'YM/' SixOrNineMonths setFiles{subjectIndex}(1:sizeOfSetFileName - 4)];
             print(fileName, '-dpng');
         end
+    end
+end
+
+function [] = createDirectoryStructure()
+    % Function checks if all needed directorys are created and creates them if not
+
+    message = 'Creating directory: ';
+    if exist('../Plots') == 0
+        disp(strcat(message, 'Plots/'));
+        mkdir('../Plots');
+    end
+    if exist('../Plots/SN') == 0
+        disp(strcat(message, 'Plots/SN'));
+        mkdir('../Plots/SN');
+    end
+    if exist('../Plots/SN/6months') == 0
+        disp(strcat(message, 'Plots/SN/6months'));
+        mkdir('../Plots/SN/6months');
+    end
+    if exist('../Plots/SN/9months') == 0
+        disp(strcat(message, 'Plots/SN/9months'));
+        mkdir('../Plots/SN/9months');
+    end
+    if exist('../Plots/SN/Other') == 0
+        disp(strcat(message, 'Plots/SN/Other'));
+        mkdir('../Plots/SN/Other');
+    end
+    if exist('../Plots/YM') == 0
+        disp(strcat(message, 'Plots/YM'));
+        mkdir('../Plots/YM');
+    end
+    if exist('../Plots/YM/6months') == 0
+        disp(strcat(message, 'Plots/YM/6months'));
+        mkdir('../Plots/YM/6months');
+    end
+    if exist('../Plots/YM/9months') == 0
+        disp(strcat(message, 'Plots/YM/9months'));
+        mkdir('../Plots/YM/9months');
+    end
+    if exist('../Plots/YM/Other') == 0
+        disp(strcat(message, 'Plots/YM/Other'));
+        mkdir('../Plots/YM/Other');
     end
 end

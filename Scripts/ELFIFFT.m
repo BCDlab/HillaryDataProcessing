@@ -4,6 +4,10 @@ function [] = ELFIFFT(channels)
     % Note: input data must match the form: ELFI_<participant#>_<age>_<condition>.set
     % Where condition is LabelPre, LabelPost, NoisePre, or NoisePost.
     % The .set files must also have their accompanying .fdt files.
+    %
+    % Potential Channes:
+    % right (76 83) 84 90
+    % left  (70 71) 65 66
 
     % make sure that the Utilities folder is on the path
     adjustPath();
@@ -72,7 +76,8 @@ function [] = ELFIFFT(channels)
         disp(freqAtMax);
 
         % Plot the S/N ratio against the frequency
-        plot(newF, SN, 'b');
+        scatter(newF, SN, 'b', '.');
+        drawNonInterpolatedLines(SN, newF);
         xlim([1 7]);
         ylim auto;
         ylabel('S/N Ratio');
