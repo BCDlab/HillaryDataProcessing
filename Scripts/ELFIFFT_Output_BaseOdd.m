@@ -5,6 +5,8 @@ function [] = ELFIFFT_Output_BaseOdd(channels)
     % Note: input data must match the form: ELFI_<participant#>_<age>_<condition>.set
     % Where condition is LabelPre, LabelPost, NoisePre, or NoisePost.
     % The .set files must also have their accompanying .fdt files.
+    %
+    % NOTE: THIS FUNCTION IS NOT FINISHED YET
 
     % make sure that the Utilities folder is on the path
     adjustPath();
@@ -35,9 +37,11 @@ function [] = ELFIFFT_Output_BaseOdd(channels)
 
     for subjectIndex = 1 : size(setFiles)
         for conditionIndex = 1 : nConditions
-            % currentSetFiles = 
-            EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
-            [ym, f] = fourieeg(EEG, channels, [], 0, 10);
+            currentSetFiles = findAllSetFilesWithCondition(conditionArray(conditionIndex));
+            for setFileIndex = 1 : size(currentSetFiles)
+                EEG = pop_loadset('filename', currentSetFiles{setFileIndex}, 'filepath', directory);
+                [ym, f] = fourieeg(EEG, channels, [], 0, 10);
+            end
 
             % TODO: Look into if we should be plotting "power" 
             % (amplitude squared) or just amplitude
@@ -50,41 +54,9 @@ function [] = ELFIFFT_Output_BaseOdd(channels)
     end
 end
 
-function out = findAllSetFilesWithCondition(setFiles, condition)
-    sizeOfSetFiles = size(setFiles);
-    nSetFiles = sizeOfSetFiles(1);
-    outIndex = 1;
-    out = {};
-    for setFileIndex = 1 : nSetFiles
-        if strfind(setFiles{setFileIndex}, condition)
-            out = [out setFiles{setFileIndex}];
-            outIndex = outIndex + 1;
-        end
-    end
-end
-
-function participantNumber = getParticipantNumber(setFileName)
-    participantStr = '';
-    currChar = setFileName(1);
-    charIndex = 1;
-    while ~strcmp(currChar, '_')
-        charIndex = charIndex + 1;
-        currChar = setFileName(charIndex);
-    end
-
-    charIndex = charIndex + 1;
-    currChar = setFileName(charIndex);
-
-    while ~strcmp(currChar, '_')
-        participantStr = [participantStr currChar];
-        charIndex = charIndex + 1;
-        currChar = setFileName(charIndex);
-    end
-
-    participantNumber = str2num(participantStr);
-end
-
 function outputArray = makeHeaderRow(outputArray)
+    % Function that makes the header row in the output array
+
     outputArray{1, 1} = 'Participant';
     outputArray{1, 2} = 'LabelPreBase';
     outputArray{1, 3} = 'LabelPreOdd';
