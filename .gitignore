@@ -5,3 +5,5 @@ Output
 *.asv
 *.mat
 *~
+*.jpg
+*.png
