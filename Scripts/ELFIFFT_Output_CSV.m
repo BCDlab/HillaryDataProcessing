@@ -1,12 +1,15 @@
-function [] = ELFIFFT_Output_BaseOdd(channels)
+function [] = ELFIFFT_Output_CSV(channels)
     % Function used to perform Fourier Transforms on EEG data then output the results of each
     % condition into a .csv file.
     % 
     % Note: input data must match the form: ELFI_<participant#>_<age>_<condition>.set
     % Where condition is LabelPre, LabelPost, NoisePre, or NoisePost.
     % The .set files must also have their accompanying .fdt files.
+    % 
+    % This script requires and will automatically create the following directory structure:
     %
-    % NOTE: THIS FUNCTION IS NOT FINISHED YET
+    %   HillaryDataProcessing |----Output
+    %
 
     % Make sure that the Utilities folder is on the path
     adjustPath();
