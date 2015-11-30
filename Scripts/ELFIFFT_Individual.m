@@ -24,7 +24,7 @@ function [] = ELFIFFT_Individual(channels)
     createDirectoryStructure();
 
     % Prompt the user for input parameters
-    [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude]...
+    [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude, singleBinSNR]...
         = promptUserForInputData(channels);
 
     sixNine = getSixOrNineMonths(setFiles{1});
@@ -51,7 +51,7 @@ function [] = ELFIFFT_Individual(channels)
 
         % obtain the EEG data and perform a fourier transform on it
         EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
-        [ym, f] = fourieeg(EEG, channels, [], 0, 10);
+        [ym, f] = fourieegWindowed(EEG, channels, [], 0, 10);
 
         % TODO: Look into if we should be plotting power (amplitude squared) or just amplitude
         % for now, just prompt user
@@ -103,7 +103,7 @@ function [] = ELFIFFT_Individual(channels)
             fileName = [plotsDirectory 'SN/' SixOrNineMonths setFiles{subjectIndex}(1:sizeOfSetFileName - 4)];
             print(fileName, '-dpng');
         else
-            [baseSNR, oddSNR] = getSN_ymVf(ym, f);
+            [baseSNR, oddSNR] = getSN_ymVf(ym, f, singleBinSNR);
 
             % Display the Signal/Noise ratio
             disp(' ');

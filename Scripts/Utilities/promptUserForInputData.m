@@ -1,4 +1,4 @@
-function [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude] = promptUserForInputData(channels, promptConditions, promptConcat, promptSNvFreq)
+function [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude, singleBinSNR] = promptUserForInputData(channels, promptConditions, promptConcat, promptSNvFreq)
 	% Function that handles prompting the user for input data common
 	% across several data processing scripts.
     %
@@ -71,4 +71,11 @@ function [channels, condition, directory, setFiles, nParticipants, concatenateAc
 
     % Prompt the user if they want to plot power or amplitude
     powerOrAmplitude = questdlg('Plot Power or Amplitude?', '', 'Amplitude', 'Power', 'Amplitude');
+
+    if strcmp(plotBySNvFreq, 'No')
+        % Prompt the user if they want to use a single bin for the SNR
+        singleBinSNR = questdlg('Use a single bin for SNR calculations?', '', 'Yes', 'No', 'Yes');
+    else
+        singleBinSNR = '';
+    end
 end
