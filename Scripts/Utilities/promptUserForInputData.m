@@ -39,6 +39,7 @@ function [channels, condition, directory, setFiles, nParticipants, concatenateAc
         condition = conditionArray{selectionIndex};
         setFiles = applyConditionFilter(allSetFiles, condition);
         nParticipants = size(setFiles);
+        nParticipants = nParticipants(1, 1);
     else
         condition = conditionArray;
         tempSetFiles = applyConditionFilter(allSetFiles, condition{1});

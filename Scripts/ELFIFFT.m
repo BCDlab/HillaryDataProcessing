@@ -5,7 +5,7 @@ function [] = ELFIFFT(channels)
     % Where condition is LabelPre, LabelPost, NoisePre, or NoisePost.
     % The .set files must also have their accompanying .fdt files.
     %
-    % Potential Channes:
+    % Potential Channels:
     % right (76 83) 84 90
     % left  (70 71) 65 66
 
