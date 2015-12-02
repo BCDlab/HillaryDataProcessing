@@ -21,7 +21,8 @@ function [] = ELFIFFT_Output_CSV(channels)
     excelYear = inputdlg({'Enter your Excel year'}, 'Excel Prompt', 1, {'2007'});
 
     % Prompt the user for input parameters
-    [channels, conditionArray, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude, singleBinSNR]...
+    [channels, conditionArray, directory, setFiles, nParticipants, concatenateAcrossTrials,...
+        plotBySNvFreq, powerOrAmplitude, singleBinSNR, binRangeOffset]...
         = promptUserForInputData(channels, 0, 0, 0);
 
     % Create a blank cell array with the proper dimensions to output the table into
@@ -55,7 +56,7 @@ function [] = ELFIFFT_Output_CSV(channels)
             end
 
             [base, odd] = getBaseAndOdd(ym);
-            [baseSN, oddSN] = getSN_ymVf(ym, f, singleBinSNR);
+            [baseSN, oddSN] = getSN_ymVf(ym, f, singleBinSNR, binRangeOffset);
 
             outputArray = insertAllIntoOutputArray(outputArray, currParticipantNum, currCondition, base, baseSN, odd, oddSN);
         end

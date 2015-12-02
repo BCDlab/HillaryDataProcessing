@@ -13,7 +13,8 @@ function [] = ELFIFFT(channels)
     adjustPath();
 
     % Prompt the user for input parameters
-    [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude, singleBinSNR]...
+    [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials,...
+        plotBySNvFreq, powerOrAmplitude, singleBinSNR, binRangeOffset]...
         = promptUserForInputData(channels);
 
     % If concatenating, concatenate all then run fourieeg on concatenated data
@@ -93,7 +94,7 @@ function [] = ELFIFFT(channels)
         annotation('textbox', dim, 'String', str);
     else
         % calculate the signal/noise ratios
-        [baseSNR, oddSNR] = getSN_ymVf(avgResponse, f, singleBinSNR);
+        [baseSNR, oddSNR] = getSN_ymVf(avgResponse, f, singleBinSNR, binRangeOffset);
 
         % Display the Signal/Noise ratio
         disp(' ');

@@ -1,4 +1,4 @@
-function [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude, singleBinSNR] = promptUserForInputData(channels, promptConditions, promptConcat, promptSNvFreq)
+function [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude, singleBinSNR, binRangeOffset] = promptUserForInputData(channels, promptConditions, promptConcat, promptSNvFreq)
 	% Function that handles prompting the user for input data common
 	% across several data processing scripts.
     %
@@ -78,4 +78,13 @@ function [channels, condition, directory, setFiles, nParticipants, concatenateAc
     else
         singleBinSNR = '';
     end
+
+    if strcmp(singleBinSNR, 'No')
+        % Prompt the user if they want to use immediately adjacent bins to calculate S/N
+        binRangeOffset = inputdlg('Enter the bin offset for SNR calculations:');
+        binRangeOffset = str2num(binRangeOffset{1});
+    else
+        binRangeOffset = 0;
+    end
+
 end
