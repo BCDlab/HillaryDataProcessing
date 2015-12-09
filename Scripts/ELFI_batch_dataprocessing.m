@@ -1,23 +1,41 @@
 function [] = ELFI_batch_dataprocessing()
 	% Function reads .set files in batch and prepares their data
 	% for FFT analysis in other scripts
-	%
+	% 
     % Notes:
     % 
     % Raw data and Event Info must have already been imported, and the file
-    % must be saved as a .set file: ELFI_#_age (e.g., ELFI_2_9)
+    % must be saved as a .set file: ELFI_#_age (e.g., ELFI_2_9).
+    % 
+    % The counterbalance enumeration is as follows:
+    %     1.  Macaque, Label
+    %     2. Capuchin, Label
+    %     3.  Macaque, Noise
+    %     4. Capuchin, Noise
+    % 
+    % The supplied .csv file containing information about 
+    % the counterbalance must be formated according to the following table (note the
+    % lack of a trailing comma at the end of each line):
+    %
+    %       ParticipantNumber | Counterbalance | Completed
+    %      -------------------|----------------|-----------
+    %               1,        |       3,       |    1
+    %               5,        |       2,       |    0
+    %              ...        |      ...       |   ...
     % 
     % The project must have the following directory structure, but it will only
     % check if it exists, not create it on its own (otherwise it would result
     % in file not found errors):
-    %
+    % 
     %                         |----Scripts
     %                         |
     %   HillaryDataProcessing |
     %                         |         |----6mos
     %                         |----Data |----9mos
-    %                                   |----Other
-    %
+    %                                   |----Other           |----6mos.csv
+    %                                   |----Counterbalances |----9mos.csv
+    %                                                        |----Other.csv
+    % 
 
     % Check that the directory structure is set up, error if it is not
     if ~checkDirectoryStructure
@@ -32,7 +50,8 @@ function [] = ELFI_batch_dataprocessing()
 
     % Get the age of the batch of participants to be processed
     ageArray = {'6mos', '9mos', 'Other'};
-    [selectionIndex, leftBlank] = listdlg('PromptString', 'Select an age:', 'SelectionMode', 'single', 'ListString', ageArray);
+    [selectionIndex, leftBlank] = listdlg('PromptString', 'Select an age:', 'SelectionMode',...
+        'single', 'ListString', ageArray);
     age = ageArray{selectionIndex};
     pathToFiles = ['../Data/' age '/'];
 
@@ -41,13 +60,25 @@ function [] = ELFI_batch_dataprocessing()
     allSetFiles = dir(pattern);
     setFiles = filterSetFiles(allSetFiles, setFilePattern);
 
-    for i = 1 : 100
-        disp(setFiles(i));
-    end
-
     % Get the number of .set files
     dimSetFiles = size(setFiles);
     nSetFiles = dimSetFiles(1, 1);
+
+    % Get the .csv file that stores information on counterbalance and 
+    % experiement completion
+    pathToCounterbalances = '../Bins/Counterbalances/';
+    counterbalanceMatrix = csvread([pathToCounterbalances  age '.csv']);
+    dimCounterbalaanceMatrix = size(counterbalanceMatrix);
+
+    disp(nSetFiles);
+    % Quick sanity check
+    if dimCounterbalaanceMatrix(1, 1) ~= nSetFiles;
+        warning(['The number of .set files found does not match the number of rows in' ...
+                 'your counterbalance .csv file. This will likely cause the program ' ...
+                 'to fail later. Press ctrl + c if you wish to abort.']);
+    end
+
+    return;
 
     % Load EEGLab constants
     eeglab;
@@ -135,6 +166,7 @@ function structureOK = checkDirectoryStructure()
 	% returns true if it is, false otherwise
 
 	structureOK = true;
+
 	if ~exist('../Data')
         structureOK = false;
         return;
@@ -148,6 +180,10 @@ function structureOK = checkDirectoryStructure()
         return;
     end
     if ~exist('../Data/Other')
+        structureOK = false;
+        return;
+    end
+    if ~exist('../Bins/Counterbalances')
         structureOK = false;
         return;
     end
