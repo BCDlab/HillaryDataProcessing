@@ -51,8 +51,8 @@ function [] = ELFIFFT_Output_CSV(channels)
 
             % TODO: Look into if we should be plotting "power" 
             % (amplitude squared) or just amplitude
-            if strcmp(powerOrAmplitude, 'Power')
-                ym = amplitudeToPower(ym);
+            if strcmp(powerOrAmplitude, 'Amplitude')
+                ym = powerToAmplitude(ym);
             end
 
             [base, odd] = getBaseAndOdd(ym);

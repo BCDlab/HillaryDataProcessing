@@ -76,16 +76,14 @@ function [channels, condition, directory, setFiles, nParticipants, concatenateAc
     if strcmp(plotBySNvFreq, 'No')
         % Prompt the user if they want to use a single bin for the SNR
         singleBinSNR = questdlg('Use a single bin for SNR calculations?', '', 'Yes', 'No', 'Yes');
-    else
-        singleBinSNR = '';
-    end
 
-    if strcmp(singleBinSNR, 'No')
-        % Prompt the user if they want to use immediately adjacent bins to calculate S/N
-        binRangeOffset = inputdlg('Enter the bin offset for SNR calculations:');
+        % Prompt the user if they want to use immediately adjacent bins or have an offset to calculate S/N
+        binRangeOffset = inputdlg('Enter the bin offset for SNR calculations:', '5', 1, {'4'});
         binRangeOffset = str2num(binRangeOffset{1});
     else
+        singleBinSNR = '';
         binRangeOffset = 0;
     end
+
 
 end

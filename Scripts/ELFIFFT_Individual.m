@@ -56,8 +56,8 @@ function [] = ELFIFFT_Individual(channels)
 
         % TODO: Look into if we should be plotting power (amplitude squared) or just amplitude
         % for now, just prompt user
-        if strcmp(powerOrAmplitude, 'Power')
-            ym = amplitudeToPower(ym);
+        if strcmp(powerOrAmplitude, 'Amplitude')
+            ym = powerToAmplitude(ym);
         end
 
         % if we are plotting SN vs freq

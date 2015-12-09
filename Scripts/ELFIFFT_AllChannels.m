@@ -50,8 +50,8 @@ function [] = ELFIFFT_AllChannels()
 
 	    % TODO: Look into if we should be plotting "power" 
 	    % (amplitude squared) or just amplitude
-	    if strcmp(powerOrAmplitude, 'Power')
-	        ymAverage = amplitudeToPower(ymAverage);
+	    if strcmp(powerOrAmplitude, 'Amplitude')
+	        ymAverage = powerToAmplitude(ymAverage);
 	    end
 
 	    ymArray{channelIndex} = ymAverage;

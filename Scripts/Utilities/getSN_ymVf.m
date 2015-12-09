@@ -25,6 +25,7 @@ function [baseSN, oddSN] = getSN_ymVf(ym, f, singleBinSNR, binRangeOffset)
             error('Your bin range offset exceeds the size of the bin array (base value). Please use a smaller bin offset.');
         end
 
+        % Base bin is at index 99
         baseSignal = ym(99);
         baseRatio = baseSignal/baseNoise;
         baseSN = mean(baseRatio);
@@ -47,14 +48,15 @@ function [baseSN, oddSN] = getSN_ymVf(ym, f, singleBinSNR, binRangeOffset)
     else
         % Calulate the Signal/Noise ratio for the base
         baseSignal = ym(99);
-        bNoise = [ym(92), ym(106)];
+        bNoise = [ym(99 - 1 - binRangeOffset), ym(99 + 1 + binRangeOffset)];
         baseNoise = mean(bNoise);
         baseRatio = baseSignal/baseNoise;
         baseSN = mean(baseRatio);
 
         % Calulate the Signal/Noise ratio for the oddball
-        oddSignal = ym(19); % Bin 21 is 1.22
-        oNoise = [ym(12), ym(26)];
+        % Linearly interpolate the value at the odd bin (1.19)
+        oddSignal = ym(20) + ((ym(21) - ym(20)) * ((1.19 - f(20)) / (f(21) - f(20))));
+        oNoise = [ym(20) - 1 - binRangeOffset, ym(26) + 1 + binRangeOffset];
         oddNoise = mean(oNoise);
         oddRatio = oddSignal/oddNoise;
         oddSN = mean(oddRatio);

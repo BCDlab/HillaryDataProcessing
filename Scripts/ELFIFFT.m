@@ -45,8 +45,8 @@ function [] = ELFIFFT(channels)
 
     % TODO: Look into if we should be plotting "power" 
     % (amplitude squared) or just amplitude
-    if strcmp(powerOrAmplitude, 'Power')
-        avgResponse = amplitudeToPower(avgResponse);
+    if strcmp(powerOrAmplitude, 'Amplitude')
+        avgResponse = powerToAmplitude(avgResponse);
     end
 
     % the starting (x, y) coordinate pair of the annotated text box
@@ -102,9 +102,6 @@ function [] = ELFIFFT(channels)
         disp(baseSNR);
         disp('Odd S/N');
         disp(oddSNR);
-
-        disp(f(92));
-        disp(f(106));
 
         % Plot the output of the Fourier Transform against the frequency
         plot(f, avgResponse, 'b');

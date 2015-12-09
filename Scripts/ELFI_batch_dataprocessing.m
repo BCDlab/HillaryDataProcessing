@@ -41,6 +41,10 @@ function [] = ELFI_batch_dataprocessing()
     allSetFiles = dir(pattern);
     setFiles = filterSetFiles(allSetFiles, setFilePattern);
 
+    for i = 1 : 100
+        disp(setFiles(i));
+    end
+
     % Get the number of .set files
     dimSetFiles = size(setFiles);
     nSetFiles = dimSetFiles(1, 1);
@@ -59,9 +63,9 @@ function [] = ELFI_batch_dataprocessing()
     	EEG = pop_loadset('filename', currentSetFile);
     	EEG = pop_editset(EEG, 'setname', [pathToFiles 'ELFI_' num2str(participantNumber) '_' age '_chan']);
     	EEG = pop_creabasiceventlist(EEG, 'AlphanumericCleaning', 'on', 'BoundaryNumeric', {-99}, 'BoundaryString', {'boundary'});
-    	EEG = pop_editset(EEG, 'setname', [pathToFiles 'ELFI_' num2str(subject) '_' age '_chan_elist']);
+    	EEG = pop_editset(EEG, 'setname', [pathToFiles 'ELFI_' num2str(participantNumber) '_' age '_chan_elist']);
     	EEG = pop_basicfilter(EEG, 1:129, 'Cutoff', [0.1 30], 'Design', 'butter', 'Filter', 'bandpass', 'Order', 2, 'RemoveDC', 'on');
-    	EEG = pop_editset(EEG, 'setname', [pathToFiles 'ELFI_' num2str(subject) '_' age '_chan_elist_filt']);
+    	EEG = pop_editset(EEG, 'setname', [pathToFiles 'ELFI_' num2str(participantNumber) '_' age '_chan_elist_filt']);
 
 	%     EEG = pop_loadset('filename', filename);
 	% %     [ALLEEG, EEG, CURRENTSET] = eeg_store(ALLEEG, EEG, 0 );
@@ -78,6 +82,7 @@ function [] = ELFI_batch_dataprocessing()
 	%     EEG  = pop_basicfilter( EEG,  1:129 , 'Cutoff', [ 0.1 30], 'Design', 'butter', 'Filter', 'bandpass', 'Order',  2, 'RemoveDC', 'on' ); 
 	%     EEG = pop_editset(EEG, 'setname', strcat(pathToFiles, 'ELFI_',num2str(subject),'_9_chan_elist_filt'));
 	%     % eeglab redraw;
+
 	%     %% Assign bins via BINLISTER
 
 	%     BinList = uigetfile('*.txt'); % Select the correct BinList file based on the condition 
