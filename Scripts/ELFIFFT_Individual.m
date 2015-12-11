@@ -52,7 +52,7 @@ function [] = ELFIFFT_Individual(channels)
 
         % obtain the EEG data and perform a fourier transform on it
         EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
-        [ym, f] = fourieeg(EEG, channels, [], 0, 10);
+        [ym, f] = fourieegWindowed(EEG, channels, [], 0, 10);
 
         % TODO: Look into if we should be plotting power (amplitude squared) or just amplitude
         % for now, just prompt user

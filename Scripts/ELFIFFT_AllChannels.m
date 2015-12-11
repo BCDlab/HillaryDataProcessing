@@ -42,7 +42,7 @@ function [] = ELFIFFT_AllChannels()
     % Iterate through each channel and get the ym and f data of each
     for channelIndex = 1 : nChannels
         for subjectIndex = 1 : nSetFiles
-            [ym, f] = fourieeg(EEGArray{subjectIndex}, channels, [], 0, 10);
+            [ym, f] = fourieegWindowed(EEGArray{subjectIndex}, channels, [], 0, 10);
             ymCombined(subjectIndex, :) = ym;
         end
 
