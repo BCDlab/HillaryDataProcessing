@@ -70,12 +70,8 @@ function [] = ELFI_batch_dataprocessing()
     counterbalanceMatrix = csvread([pathToCounterbalances  age '.csv']);
     dimCounterbalaanceMatrix = size(counterbalanceMatrix);
 
-    % Quick sanity check
-    if dimCounterbalaanceMatrix(1, 1) ~= nSetFiles;
-        warning(['The number of .set files found does not match the number of rows in' ...
-                 'your counterbalance .csv file. This will likely cause the program ' ...
-                 'to fail later. Press ctrl + c if you wish to abort.']);
-    end
+    % Check errors in .csv file
+    checkCSVErrors(counterbalanceMatrix, nSetFiles);
 
     disp(counterbalanceMatrix);
 
@@ -188,4 +184,35 @@ function structureOK = checkDirectoryStructure()
         structureOK = false;
         return;
     end
+end
+
+
+function [] = checkCSVErrors(matrix, nSetFiles)
+    % Function used to check a bunch of range and format erros in
+    % counterbalance matrix parsed from the .csv file.
+
+    dimMatrix = size(matrix);
+
+    if dimMatrix(1, 1) ~= nSetFiles
+        error(['The number of .set files found does not match the number of rows in' ...
+               'your counterbalance .csv file.']);
+    end
+
+    if dimMatrix(1, 2) ~= 3
+        error(['There are an incorrect number of columns in your set file. '...
+               'There are: ' num2str(dimMatrix(1, 2)) ' and there should be 3.']);
+    end
+
+    for index = 1 : dimMatrix(1, 1)
+        if matrix(index, 2) < 1 || matrix(index, 2) > 4
+            error(['Invalid counterbalance number: ' num2str(matrix(index, 2)) ...
+                   ' in row: ' num2str(index) ', column 2.']);
+        end
+
+        if matrix(index, 3) ~= 0 && matrix(index, 3) ~= 1
+            error(['Invalid finished code: ' num2str(matrix(index, 3)) ' in row ' ...
+                   num2str(index) ', column 3']);
+        end
+    end
+
 end
