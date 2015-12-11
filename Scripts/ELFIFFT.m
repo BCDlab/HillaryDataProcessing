@@ -28,13 +28,13 @@ function [] = ELFIFFT(channels)
             end
         end
 
-        [CombinedYMs, f] = fourieegWindowed(mergedEEG, channels,[],0,10);
+        [CombinedYMs, f] = fourieeg(mergedEEG, channels,[],0,10);
 
     % Else combine all ym's during iteration
     else
         for subjectIndex = 1 : size(setFiles)
             EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
-            [ym, f] = fourieegWindowed(EEG, channels, [], 0, 10);
+            [ym, f] = fourieeg(EEG, channels, [], 0, 10);
             CombinedSingleChannelFiles(subjectIndex, :) = ym;
         end
 

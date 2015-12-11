@@ -47,7 +47,7 @@ function [] = ELFIFFT_Output_CSV(channels)
             currParticipantNum = getParticipantNumber(currentSetFile);
 
             EEG = pop_loadset('filename', currSetFiles{setFileIndex}, 'filepath', directory);
-            [ym, f] = fourieegWindowed(EEG, channels, [], 0, 10);
+            [ym, f] = fourieeg(EEG, channels, [], 0, 10);
 
             % TODO: Look into if we should be plotting "power" 
             % (amplitude squared) or just amplitude
