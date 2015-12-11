@@ -14,7 +14,7 @@ function [] = ELFIFFT(channels)
 
     % Prompt the user for input parameters
     [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials,...
-        plotBySNvFreq, powerOrAmplitude, singleBinSNR, binRangeOffset]...
+        plotBySNvFreq, powerOrAmplitude, singleBinSNR, binRangeOffset, binRangeWidth]...
         = promptUserForInputData(channels);
 
     % If concatenating, concatenate all then run fourieeg on concatenated data
@@ -28,13 +28,13 @@ function [] = ELFIFFT(channels)
             end
         end
 
-        [CombinedYMs, f] = fourieeg(mergedEEG, channels,[],0,10);
+        [CombinedYMs, f] = fourieegWindowed(mergedEEG, channels,[],0,10);
 
     % Else combine all ym's during iteration
     else
         for subjectIndex = 1 : size(setFiles)
             EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
-            [ym, f] = fourieeg(EEG, channels, [], 0, 10);
+            [ym, f] = fourieegWindowed(EEG, channels, [], 0, 10);
             CombinedSingleChannelFiles(subjectIndex, :) = ym;
         end
 
@@ -94,7 +94,7 @@ function [] = ELFIFFT(channels)
         annotation('textbox', dim, 'String', str);
     else
         % calculate the signal/noise ratios
-        [baseSNR, oddSNR] = getSN_ymVf(avgResponse, f, singleBinSNR, binRangeOffset);
+        [baseSNR, oddSNR] = getSN_ymVf(avgResponse, f, singleBinSNR, binRangeOffset, binRangeWidth);
 
         % Display the Signal/Noise ratio
         disp(' ');

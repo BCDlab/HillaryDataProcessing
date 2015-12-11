@@ -70,13 +70,14 @@ function [] = ELFI_batch_dataprocessing()
     counterbalanceMatrix = csvread([pathToCounterbalances  age '.csv']);
     dimCounterbalaanceMatrix = size(counterbalanceMatrix);
 
-    disp(nSetFiles);
     % Quick sanity check
     if dimCounterbalaanceMatrix(1, 1) ~= nSetFiles;
         warning(['The number of .set files found does not match the number of rows in' ...
                  'your counterbalance .csv file. This will likely cause the program ' ...
                  'to fail later. Press ctrl + c if you wish to abort.']);
     end
+
+    disp(counterbalanceMatrix);
 
     return;
 

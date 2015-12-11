@@ -22,7 +22,7 @@ function [] = ELFIFFT_Output_CSV(channels)
 
     % Prompt the user for input parameters
     [channels, conditionArray, directory, setFiles, nParticipants, concatenateAcrossTrials,...
-        plotBySNvFreq, powerOrAmplitude, singleBinSNR, binRangeOffset]...
+        plotBySNvFreq, powerOrAmplitude, singleBinSNR, binRangeOffset, binRangeWidth]...
         = promptUserForInputData(channels, 0, 0, 0);
 
     % Create a blank cell array with the proper dimensions to output the table into
@@ -56,7 +56,7 @@ function [] = ELFIFFT_Output_CSV(channels)
             end
 
             [base, odd] = getBaseAndOdd(ym);
-            [baseSN, oddSN] = getSN_ymVf(ym, f, singleBinSNR, binRangeOffset);
+            [baseSN, oddSN] = getSN_ymVf(ym, f, singleBinSNR, binRangeOffset, binRangeWidth);
 
             outputArray = insertAllIntoOutputArray(outputArray, currParticipantNum, currCondition, base, baseSN, odd, oddSN);
         end

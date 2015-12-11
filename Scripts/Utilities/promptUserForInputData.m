@@ -1,4 +1,4 @@
-function [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude, singleBinSNR, binRangeOffset] = promptUserForInputData(channels, promptConditions, promptConcat, promptSNvFreq)
+function [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials, plotBySNvFreq, powerOrAmplitude, singleBinSNR, binRangeOffset, binRangeWidth] = promptUserForInputData(channels, promptConditions, promptConcat, promptSNvFreq)
 	% Function that handles prompting the user for input data common
 	% across several data processing scripts.
     %
@@ -78,11 +78,20 @@ function [channels, condition, directory, setFiles, nParticipants, concatenateAc
         singleBinSNR = questdlg('Use a single bin for SNR calculations?', '', 'Yes', 'No', 'Yes');
 
         % Prompt the user if they want to use immediately adjacent bins or have an offset to calculate S/N
-        binRangeOffset = inputdlg('Enter the bin offset for SNR calculations:', '5', 1, {'4'});
+        binRangeOffset = inputdlg('Enter the bin offset for SNR calculations:', '5', 1, {'5'});
         binRangeOffset = str2num(binRangeOffset{1});
+
+        if strcmp(singleBinSNR, 'No')
+            % Prompt the user for the width of the window they want, default 5
+            binRangeWidth = inputdlg('Enter the witdth of the bin range:', '5', 1, {'5'});
+            binRangeWidth = str2num(binRangeWidth{1});
+        else
+            binRangeWidth = 0;
+        end
     else
         singleBinSNR = '';
         binRangeOffset = 0;
+        binRangeWidth = 0;
     end
 
 

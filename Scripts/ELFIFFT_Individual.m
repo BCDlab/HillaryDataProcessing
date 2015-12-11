@@ -25,7 +25,7 @@ function [] = ELFIFFT_Individual(channels)
 
     % Prompt the user for input parameters
     [channels, condition, directory, setFiles, nParticipants, concatenateAcrossTrials,...
-        plotBySNvFreq, powerOrAmplitude, singleBinSNR, binRangeOffset]...
+        plotBySNvFreq, powerOrAmplitude, singleBinSNR, binRangeOffset, binRangeWidth]...
         = promptUserForInputData(channels);
 
     sixNine = getSixOrNineMonths(setFiles{1});
@@ -104,7 +104,7 @@ function [] = ELFIFFT_Individual(channels)
             fileName = [plotsDirectory 'SN/' SixOrNineMonths setFiles{subjectIndex}(1:sizeOfSetFileName - 4)];
             print(fileName, '-dpng');
         else
-            [baseSNR, oddSNR] = getSN_ymVf(ym, f, singleBinSNR, binRangeOffset);
+            [baseSNR, oddSNR] = getSN_ymVf(ym, f, singleBinSNR, binRangeOffset, binRangeWidth);
 
             % Display the Signal/Noise ratio
             disp(' ');

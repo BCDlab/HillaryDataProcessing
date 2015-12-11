@@ -179,12 +179,17 @@ else   % epoched data
             end
             if isempty(binArray) || (~isempty(binArray) && ~isempty(numbin) && ismember_bc2(numbin, binArray))
                 y = detrend(datax(chanArray(k),:,i));
-                dimOfY = size(y);   
-                sizeOfY = dimOfY(2);
-                hanning = hann(sizeOfY, 'periodic');
-                for index = 1 : sizeOfY
-                    y(index) = y(index) * hanning(index);
+
+                % Rectangularness close to 0 indicates high rectangularness,
+                % close to 1 indicates a near-hann window
+                rectangularness = 0.1;
+                dimY = size(y);
+                nElements = dimY(1, 2);
+                tukey = tukeywin(nElements, 0.1);
+                for index = 1 : nElements
+                    y(index) = y(index) * tukey(index);
                 end
+
                 Y = fft(y,NFFT)/L;
                 ffterp(i,:,k) = abs(Y(1:NFFT/2)).^2; % power
                 if rem(NFFT, 2) % odd NFFT excludes Nyquist point
