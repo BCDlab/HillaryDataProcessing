@@ -32,16 +32,21 @@ function [] = ELFIFFT(channels)
 
     % Else combine all ym's during iteration
     else
-        for subjectIndex = 1 : size(setFiles)
+        sizeSetFiles = size(setFiles);
+        numSetFiles = sizeSetFiles(1);
+        numFreqBins = GetNumFreqBins(setFiles, channels, directory);
+        CombinedYMs = zeros(numSetFiles, numFreqBins);
+        for subjectIndex = 1 : numSetFiles
             EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
             [ym, f] = fourieegWindowed(EEG, channels, [], 0, 10);
-            CombinedSingleChannelFiles(subjectIndex, :) = ym;
+            AssertNumFreqencyBinsIsCorrect(numFreqBins, f, subjectIndex, setFiles);
+            for columnIndex = 1 : numFreqBins
+                CombinedYMs(subjectIndex, columnIndex) = ym(1, columnIndex);
+            end
         end
-
-        CombinedYMs = CombinedSingleChannelFiles;
     end
 
-    avgResponse = mean(CombinedYMs,1);
+    avgResponse = mean(CombinedYMs, 1);
 
     % TODO: Look into if we should be plotting "power" 
     % (amplitude squared) or just amplitude
@@ -114,5 +119,36 @@ function [] = ELFIFFT(channels)
         dim = [annotationStartPosition(1) annotationStartPosition(2) .25 .1];
         str = ['Base S/N: ', num2str(baseSNR), sprintf('\n Odd S/N: '), num2str(oddSNR)];
         annotation('textbox', dim, 'String', str);
+    end
+end
+
+function numFreqBins = GetNumFreqBins(setFiles, channels, directory)
+    % Function returns the number of frequency bins the input set contains.
+
+    sizeSetFiles = size(setFiles);
+    numSetFiles = sizeSetFiles(1);
+
+    if (numSetFiles == 0)
+        error('No set files found.');
+    end
+
+    numFreqBins = -1;
+    EEG = pop_loadset('filename', setFiles{1}, 'filepath', directory);
+    [ym, f] = fourieegWindowed(EEG, channels, [], 0, 10);
+    sizeF = size(f);
+    numFreqBins = sizeF(2);
+end
+
+function [] = AssertNumFreqencyBinsIsCorrect(numFreqBins, f, subjectIndex, setFiles)
+    % Function that performs a check to make sure that the number of frequency bins measured
+    % is consistent across all .set files.
+
+    sizeF = size(f);
+    currentNumFreqBins = sizeF(2);
+    if (currentNumFreqBins ~= numFreqBins)
+        error(['There is an error in the number of frequency bins for a set file: ' ...
+            setFiles{subjectIndex} ' has ' num2str(currentNumFreqBins) ' frequency bins' ...
+            ' but it was previously measured that there are ' num2str(numFreqBins) ' bins. ' ...
+            'Either bin count could be incorrect.']);
     end
 end
