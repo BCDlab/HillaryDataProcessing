@@ -35,7 +35,12 @@ function [baseSN, oddSN] = getSN_ymVf(ym, f, singleBinSNR, binRangeOffset, binRa
         end
 
         try
-            bNoise = [ym(first : second), ym(third : fourth)];
+            % If using only the right side of the odd signal bin gets approved, flip true to false
+            if false
+                bNoise = [ym(first : second), ym(third : fourth)];
+            else
+                bNoise = [ym(third : fourth)];
+            end
             baseNoise = mean(bNoise);
         catch excetpion
             error('Your bin range offset exceeds the size of the bin array (base value). Please use a smaller bin offset.');
@@ -54,7 +59,7 @@ function [baseSN, oddSN] = getSN_ymVf(ym, f, singleBinSNR, binRangeOffset, binRa
         fourth = rightCenter + binRangeOffset;
         try
             % If using only the right side of the odd signal bin gets approved, flip true to false
-            if true
+            if false
                 oNoise = [ym(first : second), ym(third : fourth)];
             else
                 oNoise = [ym(third : fourth)];
