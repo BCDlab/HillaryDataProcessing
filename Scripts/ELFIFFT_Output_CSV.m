@@ -23,7 +23,7 @@ function [] = ELFIFFT_Output_CSV(channels)
     % Prompt the user for input parameters
     [channels, conditionArray, directory, setFiles, nParticipants, concatenateAcrossTrials,...
         plotBySNvFreq, powerOrAmplitude, singleBinSNR, binRangeOffset, binRangeWidth]...
-        = promptUserForInputData(channels, 0, 0, 0);
+        = promptUserForInputData(channels, 0, 1, 0);
 
     % Create a blank cell array with the proper dimensions to output the table into
     sizeOfConditionArray = size(conditionArray);
@@ -37,33 +37,42 @@ function [] = ELFIFFT_Output_CSV(channels)
 
     outputArray = insertParticipantNumbers(outputArray, setFiles, conditionArray);
 
-    for conditionIndex = 1 : nConditions
-        currCondition = conditionArray{conditionIndex};
-        currSetFiles = findAllSetFilesWithCondition(setFiles, currCondition);
-        sizeOfCurrSetFiles = size(currSetFiles);
-        nCurrSetFiles = sizeOfCurrSetFiles(1, 2);
-        for setFileIndex = 1 : nCurrSetFiles
-            currentSetFile = currSetFiles{setFileIndex};
-            currParticipantNum = getParticipantNumber(currentSetFile);
+    % If concatenating, concatenate all then run fourieeg on concatenated data
+    if strcmp(concatenateAcrossTrials, 'Yes')
+        disp('Concatenation not yet implemented. Exiting.');
+        return;
+    else
+        for conditionIndex = 1 : nConditions
+            currCondition = conditionArray{conditionIndex};
+            currSetFiles = findAllSetFilesWithCondition(setFiles, currCondition);
+            sizeOfCurrSetFiles = size(currSetFiles);
+            nCurrSetFiles = sizeOfCurrSetFiles(1, 2);
+            for setFileIndex = 1 : nCurrSetFiles
+                currentSetFile = currSetFiles{setFileIndex};
+                currParticipantNum = getParticipantNumber(currentSetFile);
 
-            EEG = pop_loadset('filename', currSetFiles{setFileIndex}, 'filepath', directory);
-            [ym, f] = fourieegWindowed(EEG, channels, [], 0, 10);
+                EEG = pop_loadset('filename', currSetFiles{setFileIndex}, 'filepath', directory);
+                [ym, f] = fourieegWindowed(EEG, channels, [], 0, 10);
 
-            % TODO: Look into if we should be plotting "power" 
-            % (amplitude squared) or just amplitude
-            if strcmp(powerOrAmplitude, 'Amplitude')
-                ym = powerToAmplitude(ym);
+                % TODO: Look into if we should be plotting "power" 
+                % (amplitude squared) or just amplitude
+                if strcmp(powerOrAmplitude, 'Amplitude')
+                    ym = powerToAmplitude(ym);
+                end
+
+                [base, odd] = getBaseAndOdd(ym);
+                [baseSN, oddSN, baseNoise, oddNoise] = getSN_ymVf(ym, f, 'Yes', 0, 5);% 0 because the bin range offset is zero, 5 because the bin range width is 5
+
+                outputArray = insertAllIntoOutputArray(outputArray, currParticipantNum, currCondition, base, baseSN, baseNoise, odd, oddSN, oddNoise);
             end
-
-            [base, odd] = getBaseAndOdd(ym);
-            [baseSN, oddSN] = getSN_ymVf(ym, f, singleBinSNR, binRangeOffset, binRangeWidth);
-
-            outputArray = insertAllIntoOutputArray(outputArray, currParticipantNum, currCondition, base, baseSN, odd, oddSN);
         end
     end
 
     cell2csv('ELFIFFT_Output_BaseOdd.csv', outputArray, ',', excelYear{1}, '.');
     movefile('ELFIFFT_Output_BaseOdd.csv', '../Output/ELFIFFT_Output_BaseOdd.csv');
+    disp(' ');
+    disp('Data processing completed successfully!');
+    disp('CSV file saved to /HillaryDataprocessing/Output/');
 end
 
 function [] = createDirectoryStructure()
@@ -75,13 +84,14 @@ function [] = createDirectoryStructure()
     end
 end
 
-function outputArray = insertAllIntoOutputArray(outputArray, participantNum, condition, base, baseSN, odd, oddSN)
+function outputArray = insertAllIntoOutputArray(outputArray, participantNum, condition, base, baseSN, baseNoise, odd, oddSN, oddNoise)
     % Function that inserts all data into the outputArray appropriately - used to keep the code neat
-
     outputArray = insertValueIntoOutputArray(outputArray, participantNum, [condition 'Base'], base);
     outputArray = insertValueIntoOutputArray(outputArray, participantNum, [condition 'BaseSN'], baseSN);
+    outputArray = insertValueIntoOutputArray(outputArray, participantNum, [condition 'BaseNoise'], baseNoise);
     outputArray = insertValueIntoOutputArray(outputArray, participantNum, [condition 'Odd'], odd);
     outputArray = insertValueIntoOutputArray(outputArray, participantNum, [condition 'OddSN'], oddSN);
+    outputArray = insertValueIntoOutputArray(outputArray, participantNum, [condition 'OddNoise'], oddNoise);
 end
 
 function outputArray = insertValueIntoOutputArray(outputArray, participantNum, condition, value)
@@ -136,24 +146,24 @@ function outputArray = makeHeaderRow(outputArray)
     outputArray{1, 3} = 'LabelPreOdd';
     outputArray{1, 4} = 'LabelPreBaseSN';
     outputArray{1, 5} = 'LabelPreOddSN';
-    outputArray{1, 6} = 'LabelPostBase';
-    outputArray{1, 7} = 'LabelPostOdd';
-    outputArray{1, 8} = 'LabelPostBaseSN';
-    outputArray{1, 9} = 'LabelPostOddSN';
-    outputArray{1, 10} = 'NoisePreBase';
-    outputArray{1, 11} = 'NoisePreOdd';
-    outputArray{1, 12} = 'NoisePreBaseSN';
-    outputArray{1, 13} = 'NoisePreOddSN';
-    outputArray{1, 14} = 'NoisePostBase';
-    outputArray{1, 15} = 'NoisePostOdd';
-    outputArray{1, 16} = 'NoisePostBaseSN';
-    outputArray{1, 17} = 'NoisePostOddSN';
+    outputArray{1, 6} = 'LabelPreBaseNoise';
+    outputArray{1, 7} = 'LabelPreOddNoise';
+    outputArray{1, 8} = 'LabelPostBase';
+    outputArray{1, 9} = 'LabelPostOdd';
+    outputArray{1, 10} = 'LabelPostBaseSN';
+    outputArray{1, 11} = 'LabelPostOddSN';
+    outputArray{1, 12} = 'LabelPostBaseNoise';
+    outputArray{1, 13} = 'LabelPostOddNoise';
+    outputArray{1, 14} = 'NoisePreBase';
+    outputArray{1, 15} = 'NoisePreOdd';
+    outputArray{1, 16} = 'NoisePreBaseSN';
+    outputArray{1, 17} = 'NoisePreOddSN';
+    outputArray{1, 18} = 'NoisePreBaseNoise';
+    outputArray{1, 19} = 'NoisePreOddNoise';
+    outputArray{1, 20} = 'NoisePostBase';
+    outputArray{1, 21} = 'NoisePostOdd';
+    outputArray{1, 22} = 'NoisePostBaseSN';
+    outputArray{1, 23} = 'NoisePostOddSN';
+    outputArray{1, 24} = 'NoisePostBaseNoise';
+    outputArray{1, 25} = 'NoisePostOddNoise';
 end
-
-% TODO: Finish this maybe
-% function sortedSetFiles = sortSetFiles(setFiles)
-%     % Function takes in a array of .set file names and outputs a sorted
-%     % list according to participant number
-
-%     sortedSetFiles = cell()
-% end

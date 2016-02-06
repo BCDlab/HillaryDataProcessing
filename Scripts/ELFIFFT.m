@@ -17,32 +17,23 @@ function [] = ELFIFFT(channels)
         plotBySNvFreq, powerOrAmplitude, singleBinSNR, binRangeOffset, binRangeWidth]...
         = promptUserForInputData(channels);
 
-    % If concatenating, concatenate all then run fourieeg on concatenated data
-    if strcmp(concatenateAcrossTrials, 'Yes')
-        for subjectIndex = 1 : size(setFiles)
-            currentEEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
-            if subjectIndex == 1
-                mergedEEG = currentEEG;
-            else
-                mergedEEG = EEG_Combine(mergedEEG, currentEEG);
-            end
-        end
+    sizeSetFiles = size(setFiles);
+    numSetFiles = sizeSetFiles(1);
+    numFreqBins = GetNumFreqBins(setFiles, channels, directory);
+    CombinedYMs = zeros(numSetFiles, numFreqBins);
+    for subjectIndex = 1 : numSetFiles
+        EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
 
-        [CombinedYMs, f] = fourieegWindowed(mergedEEG, channels,[],0,10);
-
-    % Else combine all ym's during iteration
-    else
-        sizeSetFiles = size(setFiles);
-        numSetFiles = sizeSetFiles(1);
-        numFreqBins = GetNumFreqBins(setFiles, channels, directory);
-        CombinedYMs = zeros(numSetFiles, numFreqBins);
-        for subjectIndex = 1 : numSetFiles
-            EEG = pop_loadset('filename', setFiles{subjectIndex}, 'filepath', directory);
+        if strcmp(concatenateAcrossTrials, 'Yes')
+            error('Concatination is not implemented yet. Exiting.');
+            [ym, f, concatBaseBin, concatFakeOddBin] = getConcatenatedBaseOdd(EEG, channels)
+        else
             [ym, f] = fourieegWindowed(EEG, channels, [], 0, 10);
             AssertNumFreqencyBinsIsCorrect(numFreqBins, f, subjectIndex, setFiles);
-            for columnIndex = 1 : numFreqBins
-                CombinedYMs(subjectIndex, columnIndex) = ym(1, columnIndex);
-            end
+        end
+
+        for columnIndex = 1 : numFreqBins
+            CombinedYMs(subjectIndex, columnIndex) = ym(1, columnIndex);
         end
     end
 

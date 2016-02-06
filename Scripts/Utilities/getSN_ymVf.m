@@ -1,4 +1,4 @@
-function [baseSN, oddSN] = getSN_ymVf(ym, f, singleBinSNR, binRangeOffset, binRangeWidth)
+function [baseSN, oddSN, baseNoise, oddNoise] = getSN_ymVf(ym, f, singleBinSNR, binRangeOffset, binRangeWidth)
 	% Function takes in the ym and f output by fourieeg and
 	% returns the base signal/noise and odd signal/noise
 	% ratios for that data
@@ -16,61 +16,26 @@ function [baseSN, oddSN] = getSN_ymVf(ym, f, singleBinSNR, binRangeOffset, binRa
     fakeOddBin = 20;
     oddSignal = ym(20) + ((ym(21) - ym(20)) * ((1.19 - f(20)) / (f(21) - f(20))));
 
+    if baseBin + binRangeWidth > numel(ym) || fakeOddBin + binRangeWidth > numel(ym)
+        error('Index exceeds range of YM. Please enter a smaller bin range.');
+    end
+
     if (strcmp(singleBinSNR, 'No'))
-        % I can't believe I have to do this like this, but MATLAB is extremely weak with
-        % subscript indices, so I'm sorry for the numbered named variables.
-
-    	% Calulate the Signal/Noise ratio for the base
-        leftCenter  = baseBin - binRangeOffset;
-        rightCenter = baseBin + binRangeOffset;
-
-        first = leftCenter - binRangeWidth;
-        second = leftCenter;
-        third = rightCenter;
-        fourth = rightCenter + binRangeOffset;
-
-        % Quick sanity check, make sure that the base isn't included in the range
-        if (first < baseBin && second > baseBin) || (third < baseBin && fourth > baseBin)
-            error('Your base signal is included in your signal to noise ratio.');
+        baseArray = zeros(1, binRangeWidth);
+        for index = 1 : binRangeWidth
+            baseArray(1, index) = ym(baseBin + index);
         end
 
-        try
-            % If using only the right side of the odd signal bin gets approved, flip true to false
-            if false
-                bNoise = [ym(first : second), ym(third : fourth)];
-            else
-                bNoise = [ym(third : fourth)];
-            end
-            baseNoise = mean(bNoise);
-        catch excetpion
-            error('Your bin range offset exceeds the size of the bin array (base value). Please use a smaller bin offset.');
+        baseNoise = mean(baseArray);
+        baseSN = baseSignal / baseNoise;
+
+        oddArray = zeros(1, binRangeWidth);
+        for index = 1 : binRangeWidth
+            oddArray(1, index) = ym(fakeOddBin + index);
         end
 
-        baseRatio = baseSignal / baseNoise;
-        baseSN = mean(baseRatio);
-
-        % Calulate the Signal/Noise ratio for the oddball
-        leftCenter  = fakeOddBin - binRangeOffset;
-        rightCenter = fakeOddBin + binRangeOffset;
-
-        first = leftCenter - binRangeWidth;
-        second = leftCenter;
-        third = rightCenter;
-        fourth = rightCenter + binRangeOffset;
-        try
-            % If using only the right side of the odd signal bin gets approved, flip true to false
-            if false
-                oNoise = [ym(first : second), ym(third : fourth)];
-            else
-                oNoise = [ym(third : fourth)];
-            end
-            oddNoise = mean(oNoise);
-        catch excetpion
-            error('Your bin range offset exceeds the size of the bin array (base value). Please use a smaller bin offset.');
-        end
-
-        oddRatio = oddSignal / oddNoise;
-        oddSN = mean(oddRatio);
+        oddNoise = mean(oddArray);
+        oddSN = oddSignal / oddNoise;
     else
         % Calulate the Signal/Noise ratio for the base
         bNoise = [ym(99 - 1 - binRangeOffset), ym(99 + 1 + binRangeOffset)];
