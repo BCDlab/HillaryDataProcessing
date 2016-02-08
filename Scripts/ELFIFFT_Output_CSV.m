@@ -61,7 +61,7 @@ function [] = ELFIFFT_Output_CSV(channels)
                 end
 
                 [base, odd] = getBaseAndOdd(ym);
-                [baseSN, oddSN, baseNoise, oddNoise] = getSN_ymVf(ym, f, 'Yes', 0, 5);% 0 because the bin range offset is zero, 5 because the bin range width is 5
+                [baseSN, oddSN, baseNoise, oddNoise] = getSN_ymVf(ym, f, 'Yes', 5, 5);% 0 because the bin range offset is zero (changed to 5 for offset), 5 because the bin range width is 5
 
                 outputArray = insertAllIntoOutputArray(outputArray, currParticipantNum, currCondition, base, baseSN, baseNoise, odd, oddSN, oddNoise);
             end
