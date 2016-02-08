@@ -23,7 +23,7 @@ function [baseSN, oddSN, baseNoise, oddNoise] = getSN_ymVf(ym, f, singleBinSNR, 
     if (strcmp(singleBinSNR, 'No'))
         baseArray = zeros(1, binRangeWidth);
         for index = 1 : binRangeWidth
-            baseArray(1, index) = ym(baseBin + index);
+            baseArray(1, index) = ym(baseBin + index + binRangeOffset);
         end
 
         baseNoise = mean(baseArray);
@@ -31,7 +31,7 @@ function [baseSN, oddSN, baseNoise, oddNoise] = getSN_ymVf(ym, f, singleBinSNR, 
 
         oddArray = zeros(1, binRangeWidth);
         for index = 1 : binRangeWidth
-            oddArray(1, index) = ym(fakeOddBin + index);
+            oddArray(1, index) = ym(fakeOddBin + index + binRangeOffset);
         end
 
         oddNoise = mean(oddArray);
